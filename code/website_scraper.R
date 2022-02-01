@@ -6,6 +6,7 @@ library(dplyr)
 library(tidytext)
 library(wordcloud)
 library(ggplot2)
+library(textstem)
 
 #import list of companies and urls, separate urls into vector
 company_url <- read_csv(here("data", "ycombinator_url_listing.csv"))
@@ -34,6 +35,9 @@ data <- map_dfr(.x = company_url$url, .f = scraper)
 #write to csv
 write_csv(data, file = here("data", "ycombinator_data.csv"))
 
+#import data from file
+data <- read_csv(here("data", "ycombinator_data.csv"))
+
 #select name/season/description and convert to tidy format
 tidy_description <- data %>% 
   select(name, season, description) %>% 
@@ -53,4 +57,25 @@ cleaned_tidy_description %>% count(word, sort = TRUE)
 cleaned_tidy_description %>% 
   count(word) %>% 
   with(wordcloud(word, n, max.words = 50))
+
+#filter data with descriptions
+description <- data %>% 
+  filter(!is.na(description))
+
+#group by season, remove stopwords and slice 10 most common words
+most_common_words <- description %>% 
+  unnest_tokens(word, description) %>% 
+  anti_join(get_stopwords()) %>% 
+  group_by(season) %>% 
+  count(word) %>% 
+  slice_max(n, n = 20)
+
+#remove stopwords, lemmatize, group by season, slice 10 most common
+lemmatized_most_common_words <- description %>% 
+  unnest_tokens(word, description) %>% 
+  anti_join(get_stopwords()) %>% 
+  mutate(word_lemma = lemmatize_words(word)) %>% 
+  group_by(season) %>% 
+  count(word_lemma) %>% 
+  slice_max(n, n = 10)
 
