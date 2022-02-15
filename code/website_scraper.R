@@ -1,4 +1,5 @@
 library(tidyverse)
+library(xml2)
 library(rvest)
 library(here)
 library(purrr)
@@ -8,6 +9,24 @@ library(wordcloud)
 library(ggplot2)
 library(textstem)
 
+# create list of companies from ycombinator sitemap (below) 
+# i did by pasting into CSV and filtering - for project write code to do so
+
+# Ycombinator website sitemap
+sitemap <- "https://www.ycombinator.com/companies//sitemap.xml"
+pattern <- "https://www.ycombinator.com/companies/"
+
+# read sitemap XML and convert into dataframe of company urls
+url_df <- sitemap %>% read_xml() %>% as_list() %>% 
+  as_tibble() %>% unnest_longer(urlset) %>% 
+  filter(urlset_id == "loc") %>% 
+  unnest(cols = names(.)) %>% unnest(urlset) %>% rename("url" = "urlset") 
+  
+
+
+list <- url_df$url[1:10]
+  
+  
 #import list of companies and urls, separate urls into vector
 company_url <- read_csv(here("data", "ycombinator_url_listing.csv"))
 url_listing <- company_url$url
@@ -30,13 +49,16 @@ scraper <- function(url){
 }
 
 #map scraper function to url_listing vector (warning: takes 20+ min to download)
-data <- map_dfr(.x = company_url$url, .f = scraper)
+data <- map_dfr(.x = url_df$url, .f = scraper)
 
 #write to csv
 write_csv(data, file = here("data", "ycombinator_data.csv"))
 
 #import data from file
 data <- read_csv(here("data", "ycombinator_data.csv"))
+
+#select companies without description (333)
+no_description <- data %>% filter(is.na(description))
 
 #select name/season/description and convert to tidy format
 tidy_description <- data %>% 
@@ -79,3 +101,12 @@ lemmatized_most_common_words <- description %>%
   count(word_lemma) %>% 
   slice_max(n, n = 10)
 
+#lemmatized words with word cloud
+lemmatized_words <- description %>% 
+  unnest_tokens(word, description) %>% 
+  anti_join(get_stopwords()) %>% 
+  mutate(word_lemma = lemmatize_words(word))
+
+lemmatized_words %>% 
+  count(word) %>% 
+  with(wordcloud(word, n, max.words = 50))

@@ -22,7 +22,8 @@ url_df <- sitemap %>% read_xml() %>% as_list() %>%
   filter(urlset_id == "loc") %>% 
   unnest(cols = names(.)) %>% unnest(urlset) %>% rename("url" = "urlset") 
   
-
+url_df2 <- url_df %>% slice(1:20)
+company_url2 <- company_url %>% slice(1:20)
 
 list <- url_df$url[1:10]
   
@@ -46,10 +47,13 @@ scraper <- function(url){
   headline <- page %>% html_nodes("h3") %>% html_text() %>% .[1]
   description <- page %>% html_nodes("p") %>% html_text() %>% .[1]
   tibble(name, season, year_founded, location, headline, description, url)
+  Sys.sleep(.1)
 }
 
 #map scraper function to url_listing vector (warning: takes 20+ min to download)
-data <- map_dfr(.x = url_df$url, .f = scraper)
+possibly <- possibly(scraper, otherwise="This page could not be accessed")
+data <- map_dfr(.x = company_url$url, .f = possibly)
+
 
 #write to csv
 write_csv(data, file = here("data", "ycombinator_data.csv"))
@@ -110,3 +114,4 @@ lemmatized_words <- description %>%
 lemmatized_words %>% 
   count(word) %>% 
   with(wordcloud(word, n, max.words = 50))
+
