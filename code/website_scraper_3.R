@@ -25,13 +25,13 @@ path_name <- "/html/body/div/div[2]/div/div/div[1]/div[1]/div[2]/div[1]/h1"
 path_season <- "/html/body/div/div[2]/div/div/div[1]/div[1]/div[2]/div[2]/span[1]/text()"
 path_status <- "/html/body/div/div[2]/div/div/div[1]/div[1]/div[2]/div[2]/span[2]"
 
-# data scraped using for loop
+# data scraped using for loop - this one works
 data <- tibble(name = character(), season = character(), status = character(),
                headline = character(), description = character(), 
                url = character())
 
-for(i in 1:10){
-  cat("Iteration", i, "out of", 10, "\n")
+for(i in 1:length(url_listing)){
+  cat("Iteration", i, "out of", length(url_listing), "\n")
   page <- read_html(url_listing[i])
   name <- page %>% html_nodes(xpath = path_name) %>% html_text()
   season <- page %>% html_nodes(xpath = path_season) %>% html_text()
@@ -40,14 +40,13 @@ for(i in 1:10){
   description <- page %>% html_nodes("p") %>% html_text() %>% .[1]
   data <- data %>%  
     add_row(name = name, season = season, status = status, headline = headline,
-            description = description,
-            url = url_listing[i])
+            description = description, url = url_listing[i])
 }
 
-# data scraped using map_dfr
+# data scraped using map_dfr - does not work, generates error after running
 # define scraper function
-scraper <- function(url){
-  page <- read_html(url)
+scraper <- function(url_listing){
+  page <- read_html(url_listing)
   name <- page %>% html_nodes(xpath = path_name) %>% html_text()
   season <- page %>% html_nodes(xpath = path_season) %>% html_text()
   status <- page %>% html_nodes(xpath = path_status) %>% html_text()
@@ -57,7 +56,7 @@ scraper <- function(url){
 }
 
 # map scraper function to url listing vector (warning: takes 20+ min to download)
-data2 <- map_dfr(.x = url_listing[1:10], .f = scraper)
+data2 <- map_dfr(.x = url_listing, .f = scraper)
 
 # map scraper function to url_listing using "possibly" to catch failures
 possibly <- possibly(scraper, otherwise="This page could not be accessed")
