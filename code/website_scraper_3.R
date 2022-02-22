@@ -61,3 +61,27 @@ data2 <- map_dfr(.x = url_listing, .f = scraper)
 # map scraper function to url_listing using "possibly" to catch failures
 possibly <- possibly(scraper, otherwise="This page could not be accessed")
 data3 <- map_dfr(.x = url_listing[1:10], .f = possibly)
+
+#data from csv
+data <- read_csv(here("data", "ycombinator_data.csv"))
+
+#unnest descriptions and build tf-idf table
+doc_words <- data %>% 
+  select(name, description) %>%
+  unnest_tokens(word, description) %>% 
+  count(name, word, sort = TRUE)
+
+total_words <- doc_words %>% 
+  group_by(name) %>% 
+  summarize(total = sum(n))
+
+doc_words <- left_join(doc_words, total_words)
+
+doc_tf_idf <- doc_words %>% 
+  bind_tf_idf(word, name, n)
+
+#high tf-idf terms
+
+doc_tf_idf %>%
+  select(-total) %>%
+  arrange(desc(tf_idf))
