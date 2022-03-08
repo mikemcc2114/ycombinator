@@ -14,12 +14,14 @@ library(textstem)
 sitemap <- "https://www.ycombinator.com/companies//sitemap.xml"
 pattern <- "https://www.ycombinator.com/companies/"
 
-# read sitemap XML and convert into dataframe and vector of company urls
+# read sitemap XML and convert into dataframe and vector of company name and urls
 company_url <- sitemap %>% read_xml() %>% as_list() %>% 
   as_tibble() %>% unnest_longer(urlset) %>% 
   filter(urlset_id == "loc") %>% 
-  unnest(cols = names(.)) %>% unnest(urlset) %>% rename("url" = "urlset") 
+  unnest(cols = names(.)) %>% unnest(urlset) %>% rename("url" = "urlset") %>% 
+  mutate(company_name = gsub("https://www.ycombinator.com/companies/", "", url))
 url_listing <- company_url$url
+company_listing <- company_url$company_name
 
 # define paths for company name, season, and status tags
 path_name <- "/html/body/div/div[2]/div/div/div[1]/div[1]/div[2]/div[1]/h1"
@@ -57,4 +59,10 @@ crunchbase_data <- read.csv(here("data", "CB_funding.csv")) %>%
   mutate(company_name = gsub("\\d*_", "", filename)) %>% 
   mutate(company_name = gsub(".json", "", company_name))
 
-# filter based on %in% ? https://sebastiansauer.github.io/dplyr_filter/
+# filter based on matching name from Y Combinator website
+funding_data <- crunchbase_data %>% 
+  filter(company_name %in% company_listing)
+
+  
+
+
