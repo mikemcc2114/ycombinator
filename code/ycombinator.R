@@ -63,6 +63,46 @@ crunchbase_data <- read.csv(here("data", "CB_funding.csv")) %>%
 funding_data <- crunchbase_data %>% 
   filter(company_name %in% company_listing)
 
+
+### below is attempt to import exit information
+
+
+url_public <- "https://www.ycombinator.com/companies/?status=Public"
+page_public <- read_html(url_public)
+path_public <- "/html/body/div/div[2]/div/div/div[2]/div[4]/a[1]"
+airbnb_path <- "/html/body/div/div[2]/div/div/div[2]/div[4]/a[1]/div[2]/div[1]/span[1]"
+                /html/body/div/div[2]/div/div/div[2]/div[4]/a[2]
+
+
+airbnb <- page_public %>% html_nodes(xpath = path_public) %>% html_text()
+               
+ycombinator_data <- tibble(name = character(), season = character(), status = character(),
+                          headline = character(), description = character(), 
+                                          url = character())               
+airbnb <- html_nodes(page_public, ".styles-module__coName")
+
+html <- read_html("https://www.ycombinator.com/companies/?status=Public")
+path <- ".styles-module__coName___3zz21"
+xpath <- "//*[contains(concat( " ", @class, " " ), concat( " ",styles-module__coName___3zz21", " " ))]"
+data <- html %>% 
+  html_element(xpath = xpath) %>% 
+  html_text2() %>% 
+  .[1:13]
+
+for(i in 1:14){
+  cat("Iteration", i, "out of", 14, "\n")
+  path1 <- path_public[1]
+  
+  
+  name <- page %>% html_nodes(xpath = path_name) %>% html_text()
+  season <- page %>% html_nodes(xpath = path_season) %>% html_text()
+  status <- page %>% html_nodes(xpath = path_status) %>% html_text()
+  headline <- page %>% html_nodes("h3") %>% html_text() %>% .[1]
+  description <- page %>% html_nodes("p") %>% html_text() %>% .[1]
+  ycombinator_data <- ycombinator_data %>%  
+    add_row(name = name, season = season, status = status, headline = headline,
+            description = description, url = url_listing[i])
+}
   
 
 
