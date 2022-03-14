@@ -7,6 +7,7 @@ library(tidytext)
 library(wordcloud)
 library(ggplot2)
 library(textstem)
+library(pdftools)
 
 ### scrape company descriptions
 
@@ -67,6 +68,11 @@ funding_data <- crunchbase_data %>%
 ### below is attempt to import exit information
 
 
+#separate out season
+by_season <- ycombinator_data %>% select(name, season, description) %>% 
+  mutate(season = gsub("W|S|IK", "", season))
+
+
 url_public <- "https://www.ycombinator.com/companies/?status=Public"
 page_public <- read_html(url_public)
 path_public <- "/html/body/div/div[2]/div/div/div[2]/div[4]/a[1]"
@@ -83,7 +89,7 @@ airbnb <- html_nodes(page_public, ".styles-module__coName")
 
 html <- read_html("https://www.ycombinator.com/companies/?status=Public")
 path <- ".styles-module__coName___3zz21"
-xpath <- "//*[contains(concat( " ", @class, " " ), concat( " ",styles-module__coName___3zz21", " " ))]"
+xpath <- "//*[contains(concat( " ", @class, " " ), concat( " ",styles-module__coName___3zz21", " " ))]
 data <- html %>% 
   html_element(xpath = xpath) %>% 
   html_text2() %>% 
@@ -105,4 +111,17 @@ for(i in 1:14){
 }
   
 
+## test importing textbooks
+
+pdf_list <- list.files(here("data", "textbooks"))
+
+data <- tibble(text = character())
+
+for(i in 1:length(pdf_list)){
+  cat("Iteration", i, "out of", length(pdf_list), "\n")
+  txt <- pdf_text(here("data", "textbooks", pdf_list[i]))
+  data <- data %>% add_row(text = txt)
+}
+
+txt <- pdf_text(here("data", "textbooks", "Analysis for Financial Management, 10th Edition.pdf"))
 
