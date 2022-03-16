@@ -5,13 +5,13 @@ library(rvest)
 library(here)
 library(dplyr)
 library(tidytext)
+library(wordcloud)
+library(ggplot2)
 library(textstem)
 library(pdftools)
 library(textclean)
-library(text2vec)
-library(lsa)
+library(widyr)
 
-################################################################################
 ### scrape company descriptions
 
 # Y Combinator website sitemap
@@ -59,7 +59,6 @@ write_csv(ycombinator_data, file = here("data", "ycombinator_data.csv"))
 # read data from csv
 ycombinator_data <- read_csv(here("data", "ycombinator_data.csv"))
 
-################################################################################
 ### tidy and clean company descriptions
 
 # unnest words, remove numbers/whitespace/punctuation/blank rows/stopwords,
@@ -76,6 +75,8 @@ descriptions <- ycombinator_data %>%
   anti_join(stop_words) %>% 
   mutate(word = lemmatize_words(word))
 
+# Build TF-IDF table
+
 # calculate term frequency per company
 description_words <- descriptions %>% 
   count(directory_name, word, sort = TRUE)
@@ -88,12 +89,6 @@ total_words <- description_words %>%
 # join tables together
 description_words <- left_join(description_words, total_words)
 
-# cast into dtm format and convert to matrix
-description_dtm <- description_words %>% 
-  cast_dtm(directory_name, word, n)
-
-description_matrix <- as.matrix(description_dtm)
-
 # tf-idf table
 
 description_tf_idf <- description_words %>% 
@@ -102,61 +97,22 @@ description_tf_idf <- description_words %>%
 description_tf_idf_sparse <- description_tf_idf %>% 
   cast_sparse(directory_name, word, tf)
 
-################################################################################
-### import textbooks - reduce pdf to just required pages using ilovepdf first
+
+### import textbooks
 
 pdf_list <- list.files(here("data", "textbooks"))
-textbooks <- tibble(textbook = character(), text = character())
+
+textbooks <- tibble(text = character())
 
 for(i in 1:length(pdf_list)){
   cat("Iteration", i, "out of", length(pdf_list), "\n")
-  textbook <-  pdf_list[i]
-  text <- here("data", "textbooks", pdf_list[i]) %>%
-    pdf_text() %>% str_flatten()
-  textbooks <- textbooks %>% add_row(textbook = textbook,
-                                     text = text)
+  txt <- pdf_text(here("data", "textbooks", pdf_list[i]))
+  data <- data %>% add_row(text = txt)
 }
 
-### tidy and clean textbooks
-
-# unnest words, remove numbers/whitespace/punctuation/blank rows/stopwords,
-# lemmatize
-
-remove <- "[:digit:]|[:blank:]|[:punct:]"
-
-textbooks_clean <- textbooks %>% 
-  unnest_tokens(word, text) %>% 
-  mutate(word = replace_non_ascii(word)) %>% 
-  mutate(word = str_replace_all(word, remove, "")) %>% 
-  filter(word != "") %>% 
-  anti_join(stop_words) %>% 
-  mutate(word = lemmatize_words(word))
-
-# calculate term frequency per company
-textbook_words <- textbooks_clean %>% 
-  count(textbook, word, sort = TRUE)
-
-# calculate total terms per company  
-textbook_total_words <- textbook_words %>% 
-  group_by(textbook) %>% 
-  summarise(total = sum(n))
-
-# join tables together
-textbook_words <- left_join(textbook_words, textbook_total_words)
-
-# cast into dtm format and convert to matrix
-textbook_dtm <- textbook_words %>% 
-  cast_dtm(textbook, word, n)
-
-description_matrix <- as.matrix(textbook_dtm)
-
-################################################################################
-### compute cosine similarity scores between description and textbooks
+txt <- pdf_text(here("data", "textbooks", "Analysis for Financial Management, 10th Edition.pdf"))
 
 
-
-
-################################################################################
 ### import and clean crunchbase funding data
 
 # import funding data csv and add company name column
