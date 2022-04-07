@@ -91,6 +91,7 @@ description_words <- left_join(description_words, total_words)
 # cast into dtm format and convert to matrix
 description_dtm <- description_words %>% 
   cast_dtm(directory_name, word, n)
+inspect(description_dtm)
 
 description_matrix <- as.matrix(description_dtm)
 
@@ -103,7 +104,7 @@ description_tf_idf_sparse <- description_tf_idf %>%
   cast_sparse(directory_name, word, tf)
 
 ################################################################################
-### import textbooks - reduce pdf to just required pages using ilovepdf first
+### import textbook extracts
 
 pdf_list <- list.files(here("data", "textbooks"))
 textbooks <- tibble(textbook = character(), text = character())
@@ -116,6 +117,10 @@ for(i in 1:length(pdf_list)){
   textbooks <- textbooks %>% add_row(textbook = textbook,
                                      text = text)
 }
+
+textbooks <- textbooks %>% 
+  mutate(textbook = textbook %>% 
+           str_remove_all("extract_|.pdf"))
 
 ### tidy and clean textbooks
 
@@ -147,13 +152,15 @@ textbook_words <- left_join(textbook_words, textbook_total_words)
 # cast into dtm format and convert to matrix
 textbook_dtm <- textbook_words %>% 
   cast_dtm(textbook, word, n)
+inspect(textbook_dtm)
 
-description_matrix <- as.matrix(textbook_dtm)
+textbook_matrix <- as.matrix(textbook_dtm)
 
 ################################################################################
 ### compute cosine similarity scores between description and textbooks
 
-
+scores <- sim2(x = description_matrix, y = textbook_matrix, method = "cosine",
+               norm = "l2")
 
 
 ################################################################################

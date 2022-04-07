@@ -25,8 +25,9 @@ company_url <- sitemap %>% read_xml() %>% as_list() %>%
   filter(urlset_id == "loc") %>% 
   unnest(cols = names(.)) %>% unnest(urlset) %>% rename("url" = "urlset") %>% 
   mutate(company_name = gsub("https://www.ycombinator.com/companies/", "", url))
-#url_listing <- company_url$url
-#company_listing <- company_url$company_name
+
+# write data to csv
+write_csv(company_url, file = here("data", "company_url.csv"))
 
 # define paths for company name, season, and status tags
 path_name <- "/html/body/div/div[2]/div/div/div[1]/div[1]/div[2]/div[1]/h1"
@@ -83,7 +84,7 @@ textbooks <- textbooks %>%
 
 ################################################################################
 ### combine company descriptions and textbook extracts, initial processing to 
-### remove extra space and NA values
+### trim whitespace and NA values
 
 data <- ycombinator_data %>% select(directory_name, description) %>%
   mutate(description = str_trim(description, side = "both")) %>% 
@@ -149,37 +150,52 @@ x_ldr <- dtm_matrix["ldr",]
 x_mkt <- dtm_matrix["mkt",]
 x_str <- dtm_matrix["str",]
 
-# create empty cosine table
-cosine_table <- tibble(company = character(), ent_sim = numeric(), 
-                       fin_sim = numeric(), ldr_sim = numeric(),
-                       mkt_sim = numeric(), str_sim = numeric())
+# create empty cosine tibble
+cosine_table <- tibble(directory_name = character(), ent_c = numeric(), 
+                       fin_c = numeric(), ldr_c = numeric(), mkt_c = numeric(),
+                       str_c = numeric(), ent_j = numeric(), fin_j = numeric(),
+                       ldr_j = numeric(), mkt_j = numeric(), str_j = numeric())
 
-# calculate cosine similarity for each company and textbook
+#define jaccard similiary function
+jaccard <- function(x, y) {
+  intersection = length(intersect(x, y))
+  union = length(x) + length(x) - intersection
+  return (intersection/union)
+}
 
+# calculate cosine and jaccard similarity for each company and textbook
 for(i in 1:length(data_clean_companies$document)){
   cat("Iteration", i, "out of", length(data_clean_companies$document), "\n")
   doc <-  data_clean_companies$document[i]
   y <- dtm_matrix[doc,]
   
-  ent_sim <- cosine(x_ent, y)
-  fin_sim <- cosine(x_fin, y)
-  ldr_sim <- cosine(x_ldr, y)
-  mkt_sim <- cosine(x_mkt, y)
-  str_sim <- cosine(x_str, y)
+  #calculate cosine similarity
+  ent_c <- cosine(x_ent, y)
+  fin_c <- cosine(x_fin, y)
+  ldr_c <- cosine(x_ldr, y)
+  mkt_c <- cosine(x_mkt, y)
+  str_c <- cosine(x_str, y)
+  
+  #calculate jaccard similiary
+  ent_j <- jaccard(x_ent, y)
+  fin_j <- jaccard(x_fin, y)
+  ldr_j <- jaccard(x_ldr, y)
+  mkt_j <- jaccard(x_mkt, y)
+  str_j <- jaccard(x_str, y)
   
   cosine_table <- cosine_table %>%  
-    add_row(company = doc, ent_sim = ent_sim, fin_sim = fin_sim,
-            ldr_sim = ldr_sim, mkt_sim = mkt_sim, str_sim = str_sim)
+    add_row(directory_name = doc, ent_c = ent_c, fin_c = fin_c,
+            ldr_c = ldr_c, mkt_c = mkt_c, str_c = str_c, ent_j = ent_j,
+            fin_j = fin_j, ldr_j = ldr_j, mkt_j = mkt_j, str_j = str_j)
 }
 
-# remove textbooks from cosine_table
+# remove textbooks from cosine_table and rename columns
 remove <- c("ent", "fin", "ldr", "mkt", "str")
 
 cosine_table <- cosine_table %>% 
-  filter(company !%in% remove)
-
-#make this work?
-
+  filter(!directory_name %in% remove) %>% 
+  mutate(ent_c = ent_c[,1], fin_c = fin_c[,1], ldr_c = ldr_c[,1],
+         mkt_c = mkt_c[,1], str_c = str_c[,1])
 
 ################################################################################
 ### import and clean crunchbase funding data
@@ -195,8 +211,60 @@ funding_data <- crunchbase_data %>%
   select(directory_name, num_funding_rounds) %>% 
   filter(directory_name %in% company_url$company_name) %>% 
   group_by(directory_name, num_funding_rounds) %>% 
-  summarise(n = n_distinct(directory_name))
+  summarise(n = n_distinct(directory_name)) %>% 
+  rename(funded = n)
 
-# join ycombinator with funding data - change to tf-idf table?
+################################################################################
+### create dummy variables for exit status from ycombinator data
 
-joined_data <- left_join(ycombinator_data, funding_data, by = "directory_name")
+exit <- ycombinator_data %>% 
+  select(directory_name, status) %>% 
+  mutate(acquired = ifelse(status == "Acquired", 1, 0)) %>% 
+  mutate(active = ifelse(status == "Active", 1, 0)) %>% 
+  mutate(inactive = ifelse(status == "Inactive", 1, 0)) %>% 
+  mutate(public = ifelse(status == "Public", 1, 0))
+
+################################################################################
+### join similarity, funding, and exit tables
+
+# join cosine table with funding data
+join1 <- left_join(cosine_table, funding_data, by = "directory_name")
+
+# join status table (exit info)
+data_joined <- left_join(join1, exit, by = "directory_name")
+
+# replace NA values with 0
+data_joined$num_funding_rounds <- data_joined$num_funding_rounds %>% 
+  replace_na(0)
+data_joined$funded <- data_joined$funded %>% 
+  replace_na(0)
+
+################################################################################
+### regression analysis
+
+# multivariable logistic for funded, exits?
+
+# funded multivariable logistic regression
+log_funded <- glm(formula = funded ~ ent_c + fin_c + ldr_c + mkt_c + str_c +
+                    ent_j + fin_j + ldr_j + mkt_j + str_j,
+                  data = data_joined, family = "binomial"(link = "logit"))
+summary(log_funded)
+
+# poisson for number of funding rounds?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
