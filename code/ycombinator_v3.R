@@ -27,7 +27,7 @@ company_url <- sitemap %>% read_xml() %>% as_list() %>%
   mutate(company_name = gsub("https://www.ycombinator.com/companies/", "", url))
 
 # write data to csv
-write_csv(company_url, file = here("data", "company_url.csv"))
+#write_csv(company_url, file = here("data", "company_url.csv"))
 
 # define paths for company name, season, and status tags
 path_name <- "/html/body/div/div[2]/div/div/div[1]/div[1]/div[2]/div[1]/h1"
@@ -40,7 +40,7 @@ ycombinator_data <- tibble(directory_name = character(),
                            status = character(), headline = character(), 
                            description = character(), url = character())
 
-for(i in 1:length(company_url$url)){
+#for(i in 1:length(company_url$url)){
   cat("Iteration", i, "out of", length(company_url$url), "\n")
   page <- read_html(company_url$url[i])
   directory_name <- company_url$company_name[i]
@@ -56,7 +56,7 @@ for(i in 1:length(company_url$url)){
 }
 
 # write data to csv
-write_csv(ycombinator_data, file = here("data", "ycombinator_data.csv"))
+#write_csv(ycombinator_data, file = here("data", "ycombinator_data.csv"))
 
 # read data from csv
 ycombinator_data <- read_csv(here("data", "ycombinator_data.csv"))
@@ -156,10 +156,10 @@ cosine_table <- tibble(directory_name = character(), ent_c = numeric(),
                        str_c = numeric(), ent_j = numeric(), fin_j = numeric(),
                        ldr_j = numeric(), mkt_j = numeric(), str_j = numeric())
 
-#define jaccard similiary function
+# define jaccard similiary function
 jaccard <- function(x, y) {
   intersection = length(intersect(x, y))
-  union = length(x) + length(x) - intersection
+  union = length(x) + length(y) - intersection
   return (intersection/union)
 }
 
@@ -239,10 +239,17 @@ data_joined$num_funding_rounds <- data_joined$num_funding_rounds %>%
 data_joined$funded <- data_joined$funded %>% 
   replace_na(0)
 
+# rename columns to prevent variable confusion - not the problem
+#data_joined <- data_joined %>% 
+#  rename(entc = ent_c, finc = fin_c, ldrc = ldr_c, mktc = mkt_c, strc = str_c, 
+#         entj = ent_j, finj = fin_j, ldrj = ldr_j, mktj = mkt_j, strj = str_j)
+
 ################################################################################
 ### regression analysis
 
 # multivariable logistic for funded, exits?
+
+# active inactive public
 
 # funded multivariable logistic regression
 log_funded <- glm(formula = funded ~ ent_c + fin_c + ldr_c + mkt_c + str_c +
@@ -250,10 +257,57 @@ log_funded <- glm(formula = funded ~ ent_c + fin_c + ldr_c + mkt_c + str_c +
                   data = data_joined, family = "binomial"(link = "logit"))
 summary(log_funded)
 
+# acquired multivariable logistic regression
+log_acquired <- glm(formula = acquired ~ ent_c + fin_c + ldr_c + mkt_c + str_c +
+                    ent_j + fin_j + ldr_j + mkt_j + str_j,
+                  data = data_joined, family = "binomial"(link = "logit"))
+summary(log_acquired)
+
+# active multivariable logistic regression
+log_active <- glm(formula = active ~ ent_c + fin_c + ldr_c + mkt_c + str_c +
+                      ent_j + fin_j + ldr_j + mkt_j + str_j,
+                    data = data_joined, family = "binomial"(link = "logit"))
+summary(log_active)
+
+# inactive multivariable logistic regression
+log_inactive <- glm(formula = inactive ~ ent_c + fin_c + ldr_c + mkt_c + str_c +
+                    ent_j + fin_j + ldr_j + mkt_j + str_j,
+                  data = data_joined, family = "binomial"(link = "logit"))
+summary(log_inactive)
+
+# public multivariable logistic regression
+log_public <- glm(formula = public ~ ent_c + fin_c + ldr_c + mkt_c + str_c +
+                      ent_j + fin_j + ldr_j + mkt_j + str_j,
+                    data = data_joined, family = "binomial"(link = "logit"))
+summary(log_public)
+
 # poisson for number of funding rounds?
 
+# rename columns to prevent confusion with variables - not the problem
+#log_funded <- glm(formula = funded ~ entc + finc + ldrc + mktc + strc +
+#                    entj + finj + ldrj + mktj + strj,
+#                  data = data_joined, family = "binomial"(link = "logit"))
+#summary(log_funded)
 
 
+# check for NAs in column - none?
+sum(is.na(data_joined$fin_j))
+sum(is.na(data_joined$ldr_j))
+
+# try as function of acquired - same error
+log_funded <- glm(formula = acquire ~ ent_c + fin_c + ldr_c + mkt_c + str_c +
+                    ent_j + fin_j + ldr_j + mkt_j + str_j,
+                  data = data_joined, family = "binomial"(link = "logit"))
+summary(log_funded)
+
+# create matrix of variables to check correlation
+matrix <- data_joined %>%
+  select(acquired, ent_c, fin_c, ldr_c, mkt_c, str_c, ent_j, fin_j, ldr_j, 
+         mkt_j, str_j)
+cor(matrix)
+# ent_j, fin_j, and ldr_j are all perfectly correlated?
+
+# try with very different textbooks and see what happens?
 
 
 
