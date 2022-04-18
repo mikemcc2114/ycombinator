@@ -1,3 +1,15 @@
+---
+title: "Words have meaning: initial descriptive language choice and startup success"
+author: "Zachary Hayes, Justin Liu, Mike McCormick"
+date: '2022-04-18'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r code, echo = F, warning = F, error = F, message = F, results = 'hide' }
 library(tidyverse)
 library(tm)
 library(xml2)
@@ -363,30 +375,6 @@ data_joined$funded <- data_joined$funded %>%
   replace_na(0)
 
 ################################################################################
-### combined table summary statistics
-
-combined_cosine <- data_joined %>% 
-  group_by(status) %>% 
-  summarize(count = n(),
-            entrepreneurship = mean(ent_c), finance = mean(fin_c), 
-            leadership = mean(ldr_c), marketing = mean(mkt_c),
-            strategy = mean(str_c)) %>% 
-  kbl() %>% 
-  kable_classic() %>% 
-  add_header_above(c(" " = 1, " " = 1, "Mean cosine similarity scores" = 5))
-
-combined_jaccard <- data_joined %>% 
-  group_by(status) %>% 
-  summarize(count = n(),
-            entrepreneurship = mean(ent_j), finance = mean(fin_j), 
-            leadership = mean(ldr_j), marketing = mean(mkt_j),
-            strategy = mean(str_j)) %>% 
-  kbl() %>% 
-  kable_classic() %>% 
-  add_header_above(c(" " = 1, " " = 1, "Mean Jaccard similarity scores" = 5))
-
-
-################################################################################
 ### funding data statistics
 
 funding_summary <- data_joined %>% 
@@ -435,54 +423,130 @@ log_public <- glm(formula = public ~ ent_c + fin_c + ldr_c + mkt_c + str_c +
                       ent_j + fin_j + ldr_j + mkt_j + str_j,
                     data = data_joined, family = "binomial"(link = "logit"))
 
-# should we use odds ratio or summary output in report?
+```
 
-summary(log_active)
+## Introduction
+
+text text text
+
+### Motivation
+
+text text text
+
+### Background
+
+text text text
+
+### Hypothesis
+
+text text text
+
+## Data
+
+### Y Combinator startup company descriptions
+
+text text text
+
+```{r company data, message = F, echo = F}
+yco_init_hist
+
+yco_post_hist
+
+```
+
+### Open source textbooks
+
+text text text
+
+### Textual data summary statistics
+
+text text text
+
+```{r textual data, message = F, echo = F}
+descr_stats_table <- kbl(descr_stats) %>% 
+  kable_classic() %>% 
+  add_header_above(c(" " = 1, " " = 1, "words per document" = 7))
+descr_stats_table
+```
+
+### Crunchbase startup funding data
+
+text text text
+
+```{r funding, message = F, echo = F}
+
+funding_stats_table <- kbl(funding_summary) %>% 
+  kable_classic()
+funding_stats_table
+
+funding_summary_plot
+
+```
+
+## Methodology and results
+
+### Methodology
+
+text text text
+
+#### Data processing
+
+text text text
+
+#### Similarity scores
+
+text text text
+Summary table of similarity scores
+
+```{r similarity, message = F, echo = F}
+
+combined_cosine <- data_joined %>% 
+  group_by(status) %>% 
+  summarize(count = n(),
+            entrepreneurship = mean(ent_c), finance = mean(fin_c), 
+            leadership = mean(ldr_c), marketing = mean(mkt_c),
+            strategy = mean(str_c)) %>% 
+  kbl() %>% 
+  kable_classic() %>% 
+  add_header_above(c(" " = 1, " " = 1, "Mean cosine similarity scores" = 5))
+combined_cosine
+
+combined_jaccard <- data_joined %>% 
+  group_by(status) %>% 
+  summarize(count = n(),
+            entrepreneurship = mean(ent_j), finance = mean(fin_j), 
+            leadership = mean(ldr_j), marketing = mean(mkt_j),
+            strategy = mean(str_j)) %>% 
+  kbl() %>% 
+  kable_classic() %>% 
+  add_header_above(c(" " = 1, " " = 1, "Mean Jaccard similarity scores" = 5))
+combined_jaccard
+
+```
+
+#### Data integration and regression analysis
+
+### Results
+
+#### Regression analysis table
+
+```{r regression, message = F, echo = F}
+
 tab_model(log_active, log_funded)
 
-
-
-
-
-
-#### problem solving (multiple NAs in regression output
-
-# rename columns to prevent confusion with variables - not the problem
-#log_funded <- glm(formula = funded ~ entc + finc + ldrc + mktc + strc +
-#                    entj + finj + ldrj + mktj + strj,
-#                  data = data_joined, family = "binomial"(link = "logit"))
-#summary(log_funded)
-
-
-# check for NAs in column - none?
-sum(is.na(data_joined$fin_j))
-sum(is.na(data_joined$ldr_j))
-
-# try as function of acquired - same error
-log_funded <- glm(formula = acquire ~ ent_c + fin_c + ldr_c + mkt_c + str_c +
-                    ent_j + fin_j + ldr_j + mkt_j + str_j,
-                  data = data_joined, family = "binomial"(link = "logit"))
+summary(log_active)
 summary(log_funded)
+summary(log_inactive)
+summary(log_acquired)
+summary(log_public )
 
-# create matrix of variables to check correlation
-matrix <- data_joined %>%
-  select(acquired, ent_c, fin_c, ldr_c, mkt_c, str_c, ent_j, fin_j, ldr_j, 
-         mkt_j, str_j)
-cor(matrix)
-# ent_j, fin_j, and ldr_j are all perfectly correlated?
+```
 
-# try with very different textbooks and see what happens?
+## Conclusion
 
+## References
 
+### libraries
 
-
-
-
-
-
-
-
-
-
-
+### data sources
 
