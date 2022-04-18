@@ -122,7 +122,9 @@ yco_init_stats <- yco_init %>%
 
 yco_init_hist <- yco_init %>% 
   ggplot(aes(x = count_words)) +
-  geom_histogram()
+  geom_histogram() + 
+  labs(x = "words per company description", y = "frequency",
+       title = "Figure 1 - histogram of words per company description, pre-processing")
 
 # ycombinator post-processing
 
@@ -154,7 +156,9 @@ yco_post_stats <- yco_post %>%
 
 yco_post_hist <- yco_post %>% 
   ggplot(aes(x = count_words)) +
-  geom_histogram()
+  geom_histogram() + 
+  labs(x = "words per company description", y = "frequency",
+       title = "Figure 2 - histogram of words per company description, post-processing")
 
 # textbook initial data
 
@@ -390,7 +394,7 @@ funding_summary_plot <- ggplot(funding_summary,
                                aes(x = reorder(status, -count), y = count)) +
   geom_bar(stat = "identity") +
   labs(x = "funding / status category",
-       title = "Table X - Company funding and status statistics")
+       title = "Figure 3 - company funding and status statistics")
 
 
 ################################################################################
@@ -458,10 +462,9 @@ yco_post_hist
 
 text text text
 
-### Textual data summary statistics
 
-text text text
 
+**Table 1 - textual data summary statistics**
 ```{r textual data, message = F, echo = F}
 descr_stats_table <- kbl(descr_stats) %>% 
   kable_classic() %>% 
@@ -473,6 +476,7 @@ descr_stats_table
 
 text text text
 
+**Table 2 - funding and exit data for Y Combinator companies**
 ```{r funding, message = F, echo = F}
 
 funding_stats_table <- kbl(funding_summary) %>% 
@@ -496,8 +500,9 @@ text text text
 #### Similarity scores
 
 text text text
-Summary table of similarity scores
 
+
+**Table 3 - Mean cosine and similarity scores by company status**
 ```{r similarity, message = F, echo = F}
 
 combined_cosine <- data_joined %>% 
@@ -546,7 +551,21 @@ summary(log_public )
 
 ## References
 
-### libraries
+### R libraries
 
-### data sources
+### Data sources
+
+#### Company descriptions
+
+#### Textbooks
+
+Entrepeneurship: openstax, Entrepeneurship
+Finance: Robert C. Higgins, Analysis for Financial Management, 10th Edition
+Leadership: Richard L. Daft, The Leadership Experience
+Marketing: Introducing Marketing, Open Textbook Library
+Strategy: Strategic Management, VA Tech
+
+#### Funding data
+
+Crunchbase funding data provided by Professor Katie Moon
 
