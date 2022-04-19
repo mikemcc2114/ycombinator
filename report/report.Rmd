@@ -1,8 +1,11 @@
 ---
-title: "Words have meaning: initial descriptive language choice and startup success"
+title: 'Words have meaning: initial descriptive language choice and startup success'
 author: "Zachary Hayes, Justin Liu, Mike McCormick"
 date: '2022-04-18'
-output: html_document
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -25,6 +28,8 @@ library(lsa)
 library(widyr)
 library(kableExtra)
 library(sjPlot)
+library(wordcloud)
+library(broom)
 
 ################################################################################
 ### scrape company descriptions
@@ -219,7 +224,27 @@ descr_stats <- yco_init_stats %>%
 descr_stats_table <- kbl(descr_stats) %>% 
   kable_classic() %>% 
   add_header_above(c(" " = 1, " " = 1, "words per document" = 7))
-  
+
+# combined histogram
+
+yco_init <- yco_init %>% 
+  mutate(data = "before processing")
+
+yco_post <- yco_post %>% 
+  mutate(data = "after processing")
+
+yco_init_post <- yco_init %>% add_row(yco_post)
+yco_init_post$data <- factor(yco_init_post$data, 
+                             levels = c("before processing",
+                                        "after processing"))
+
+yco_hist <- yco_init_post %>% 
+  ggplot(aes(x = count_words)) +
+  geom_histogram() +
+  facet_grid(~data) + 
+  labs(x = "words per company description", y = "frequency",
+       title = "Figure 1 - histogram of words per company description")
+ 
 
 ################################################################################
 ### combine company descriptions and textbook extracts, initial processing to 
@@ -289,6 +314,13 @@ x_ldr <- dtm_matrix["leadership",]
 x_mkt <- dtm_matrix["marketing",]
 x_str <- dtm_matrix["strategy",]
 
+# convert to jaccard logical vectors for each textbook
+x_ent_j <- x_ent > 0
+x_fin_j <- x_fin > 0
+x_ldr_j <- x_ldr > 0 
+x_mkt_j <- x_mkt > 0
+x_str_j <- x_str > 0
+
 # create empty cosine tibble
 cosine_table <- tibble(directory_name = character(), ent_c = numeric(), 
                        fin_c = numeric(), ldr_c = numeric(), mkt_c = numeric(),
@@ -297,9 +329,9 @@ cosine_table <- tibble(directory_name = character(), ent_c = numeric(),
 
 # define jaccard similiary function
 jaccard <- function(x, y) {
-  intersection = length(intersect(x, y))
+  intersection = x %*% y
   union = length(x) + length(y) - intersection
-  return (intersection/union)
+  return(intersection/union)
 }
 
 # calculate cosine and jaccard similarity for each company and textbook
@@ -307,21 +339,22 @@ for(i in 1:length(data_clean_companies$document)){
   cat("Iteration", i, "out of", length(data_clean_companies$document), "\n")
   doc <-  data_clean_companies$document[i]
   y <- dtm_matrix[doc,]
-  
+  y_j <- y > 0
+
   #calculate cosine similarity
   ent_c <- cosine(x_ent, y)
   fin_c <- cosine(x_fin, y)
   ldr_c <- cosine(x_ldr, y)
   mkt_c <- cosine(x_mkt, y)
   str_c <- cosine(x_str, y)
-  
+
   #calculate jaccard similiary
-  ent_j <- jaccard(x_ent, y)
-  fin_j <- jaccard(x_fin, y)
-  ldr_j <- jaccard(x_ldr, y)
-  mkt_j <- jaccard(x_mkt, y)
-  str_j <- jaccard(x_str, y)
-  
+  ent_j <- jaccard(x_ent_j, y_j)
+  fin_j <- jaccard(x_fin_j, y_j)
+  ldr_j <- jaccard(x_ldr_j, y_j)
+  mkt_j <- jaccard(x_mkt_j, y_j)
+  str_j <- jaccard(x_str_j, y_j)
+
   cosine_table <- cosine_table %>%  
     add_row(directory_name = doc, ent_c = ent_c, fin_c = fin_c,
             ldr_c = ldr_c, mkt_c = mkt_c, str_c = str_c, ent_j = ent_j,
@@ -394,7 +427,7 @@ funding_summary_plot <- ggplot(funding_summary,
                                aes(x = reorder(status, -count), y = count)) +
   geom_bar(stat = "identity") +
   labs(x = "funding / status category",
-       title = "Figure 3 - company funding and status statistics")
+       title = "Figure 2 - company funding and status statistics")
 
 
 ################################################################################
@@ -452,10 +485,7 @@ text text text
 text text text
 
 ```{r company data, message = F, echo = F}
-yco_init_hist
-
-yco_post_hist
-
+yco_hist 
 ```
 
 ### Open source textbooks
@@ -463,12 +493,8 @@ yco_post_hist
 text text text
 
 
-
 **Table 1 - textual data summary statistics**
 ```{r textual data, message = F, echo = F}
-descr_stats_table <- kbl(descr_stats) %>% 
-  kable_classic() %>% 
-  add_header_above(c(" " = 1, " " = 1, "words per document" = 7))
 descr_stats_table
 ```
 
@@ -533,17 +559,20 @@ combined_jaccard
 
 ### Results
 
-#### Regression analysis table
+#### Regression analysis tables
 
 ```{r regression, message = F, echo = F}
 
-tab_model(log_active, log_funded)
-
-summary(log_active)
-summary(log_funded)
-summary(log_inactive)
-summary(log_acquired)
-summary(log_public )
+require(broom)
+r_table_active <- log_active %>% 
+  tidy() %>% 
+  kbl() %>% 
+  kable_classic()
+r_table_active
+tidy(log_funded)
+tidy(log_inactive)
+tidy(log_acquired)
+tidy(log_public )
 
 ```
 
@@ -558,6 +587,8 @@ summary(log_public )
 #### Company descriptions
 
 #### Textbooks
+
+fix these:
 
 Entrepeneurship: openstax, Entrepeneurship
 Finance: Robert C. Higgins, Analysis for Financial Management, 10th Edition

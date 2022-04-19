@@ -13,6 +13,7 @@ library(lsa)
 library(widyr)
 library(kableExtra)
 library(sjPlot)
+library(bayesbio)
 
 ################################################################################
 ### scrape company descriptions
@@ -203,8 +204,26 @@ descr_stats <- yco_init_stats %>%
 descr_stats_table <- kbl(descr_stats) %>% 
   kable_classic() %>% 
   add_header_above(c(" " = 1, " " = 1, "words per document" = 7))
-  
 
+# combined histogram
+
+yco_init <- yco_init %>% 
+  mutate(data = "textbooks, pre-processing")
+
+yco_post <- yco_post %>% 
+  mutate(data = "textbooks, post-processing")
+
+yco_init_post <- yco_init %>% add_row(yco_post)
+yco_init_post$data <- factor(yco_init_post$data, 
+                             levels = c("textbooks, pre-processing",
+                                        "textbooks, post-processing"))
+
+yco_hist <- yco_init_post %>% 
+  ggplot(aes(x = count_words)) +
+  geom_histogram() +
+  facet_grid(~data)
+
+yco_hist
 ################################################################################
 ### combine company descriptions and textbook extracts, initial processing to 
 ### trim whitespace and NA values
@@ -273,6 +292,13 @@ x_ldr <- dtm_matrix["leadership",]
 x_mkt <- dtm_matrix["marketing",]
 x_str <- dtm_matrix["strategy",]
 
+# convert to jaccard logical vectors for each textbook
+x_ent_j <- x_ent > 0
+x_fin_j <- x_fin > 0
+x_ldr_j <- x_ldr > 0 
+x_mkt_j <- x_mkt > 0
+x_str_j <- x_str > 0
+
 # create empty cosine tibble
 cosine_table <- tibble(directory_name = character(), ent_c = numeric(), 
                        fin_c = numeric(), ldr_c = numeric(), mkt_c = numeric(),
@@ -281,9 +307,9 @@ cosine_table <- tibble(directory_name = character(), ent_c = numeric(),
 
 # define jaccard similiary function
 jaccard <- function(x, y) {
-  intersection = length(intersect(x, y))
+  intersection = x %*% y
   union = length(x) + length(y) - intersection
-  return (intersection/union)
+  return(intersection/union)
 }
 
 # calculate cosine and jaccard similarity for each company and textbook
@@ -291,21 +317,22 @@ for(i in 1:length(data_clean_companies$document)){
   cat("Iteration", i, "out of", length(data_clean_companies$document), "\n")
   doc <-  data_clean_companies$document[i]
   y <- dtm_matrix[doc,]
-  
+  y_j <- y > 0
+
   #calculate cosine similarity
   ent_c <- cosine(x_ent, y)
   fin_c <- cosine(x_fin, y)
   ldr_c <- cosine(x_ldr, y)
   mkt_c <- cosine(x_mkt, y)
   str_c <- cosine(x_str, y)
-  
+
   #calculate jaccard similiary
-  ent_j <- jaccard(x_ent, y)
-  fin_j <- jaccard(x_fin, y)
-  ldr_j <- jaccard(x_ldr, y)
-  mkt_j <- jaccard(x_mkt, y)
-  str_j <- jaccard(x_str, y)
-  
+  ent_j <- jaccard(x_ent_j, y_j)
+  fin_j <- jaccard(x_fin_j, y_j)
+  ldr_j <- jaccard(x_ldr_j, y_j)
+  mkt_j <- jaccard(x_mkt_j, y_j)
+  str_j <- jaccard(x_str_j, y_j)
+
   cosine_table <- cosine_table %>%  
     add_row(directory_name = doc, ent_c = ent_c, fin_c = fin_c,
             ldr_c = ldr_c, mkt_c = mkt_c, str_c = str_c, ent_j = ent_j,
@@ -438,50 +465,6 @@ log_public <- glm(formula = public ~ ent_c + fin_c + ldr_c + mkt_c + str_c +
 # should we use odds ratio or summary output in report?
 
 summary(log_active)
-tab_model(log_active, log_funded)
-
-
-
-
-
-
-#### problem solving (multiple NAs in regression output
-
-# rename columns to prevent confusion with variables - not the problem
-#log_funded <- glm(formula = funded ~ entc + finc + ldrc + mktc + strc +
-#                    entj + finj + ldrj + mktj + strj,
-#                  data = data_joined, family = "binomial"(link = "logit"))
-#summary(log_funded)
-
-
-# check for NAs in column - none?
-sum(is.na(data_joined$fin_j))
-sum(is.na(data_joined$ldr_j))
-
-# try as function of acquired - same error
-log_funded <- glm(formula = acquire ~ ent_c + fin_c + ldr_c + mkt_c + str_c +
-                    ent_j + fin_j + ldr_j + mkt_j + str_j,
-                  data = data_joined, family = "binomial"(link = "logit"))
-summary(log_funded)
-
-# create matrix of variables to check correlation
-matrix <- data_joined %>%
-  select(acquired, ent_c, fin_c, ldr_c, mkt_c, str_c, ent_j, fin_j, ldr_j, 
-         mkt_j, str_j)
-cor(matrix)
-# ent_j, fin_j, and ldr_j are all perfectly correlated?
-
-# try with very different textbooks and see what happens?
-
-
-
-
-
-
-
-
-
-
 
 
 
