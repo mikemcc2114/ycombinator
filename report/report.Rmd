@@ -30,6 +30,8 @@ library(kableExtra)
 library(sjPlot)
 library(wordcloud)
 library(broom)
+library(urbnmapr)
+library(MASS)
 
 ################################################################################
 ### scrape company descriptions
@@ -54,10 +56,10 @@ path_season <- "/html/body/div/div[2]/div/div/div[1]/div[1]/div[2]/div[2]/span[1
 path_status <- "/html/body/div/div[2]/div/div/div[1]/div[1]/div[2]/div[2]/span[2]"
 
 # scrape company descriptions from Y Combinator website based on url vector
-ycombinator_data <- tibble(directory_name = character(), 
-                           website_name = character(), season = character(), 
-                           status = character(), headline = character(), 
-                           description = character(), url = character())
+# ycombinator_data <- tibble(directory_name = character(), 
+#                            website_name = character(), season = character(), 
+#                            status = character(), headline = character(), 
+#                            description = character(), url = character())
 
 # for(i in 1:length(company_url$url)){
 #   cat("Iteration", i, "out of", length(company_url$url), "\n")
@@ -75,10 +77,111 @@ ycombinator_data <- tibble(directory_name = character(),
 # }
 
 # write data to csv
-#write_csv(ycombinator_data, file = here("data", "ycombinator_data.csv"))
+
+# read previously downloaded data from csv
+ycombinator_data <- read_csv(here("data", "ycombinator_data.csv"))
+
+################################################################################
+### company location information
+
+# define path for company location
+path_location <- "/html/body/div/div[1]/div/div/div[2]/div/div[2]/div[3]/span[2]"
+
+# scrape company locations from Y Combinator website based on url vector
+location_data <- tibble(directory_name = character(), location = character())
+
+# for(i in 1:length(company_url$url)){
+#    cat("Iteration", i, "out of", length(company_url$url), "\n")
+#    page <- read_html(company_url$url[i])
+#    directory_name <- company_url$company_name[i]
+#    location <- page %>% html_nodes(xpath = path_location) %>% html_text()
+#    location_data <- location_data %>%
+#      add_row(directory_name = directory_name, location = location)
+# }
+
+# write data to csv
+#write_csv(location_data, file = here("data", "location_data.csv"))
 
 # read data from csv
-ycombinator_data <- read_csv(here("data", "ycombinator_data.csv"))
+location_data <- read_csv(here("data", "location_data.csv"))
+
+# summary table
+location_summary <- location_data %>% 
+  count(location)
+
+# write data to csv, then manually categorize
+#write_csv(location_summary, file = here("data", "location_summary.csv"))
+
+# read manually categorized summary
+location_summary <- read_csv(here("data", "location_summary.csv"))
+
+# break down data by country
+country_breakdown <- location_summary %>%
+  group_by(country) %>% 
+  summarize(count = sum(n))
+
+# top 5 countries
+top_5_countries <- country_breakdown %>%
+  slice_max(count, n = 5) %>% 
+  mutate(category = "country") %>% 
+  rename(location = country)
+
+# top_5_countries_plot <- ggplot(top_5_countries, aes(x = reorder(country, -count), y = count)) +
+#   geom_col() +
+#   labs(x = "country", title = "Top five countries where Y Combinator companies are founded")
+
+# break down data by US states
+state_breakdown <- location_summary %>%
+  filter(country == "USA") %>% 
+  group_by(state) %>% 
+  summarize(count = sum(n))
+
+# top 5 states
+top_5_states <- state_breakdown %>%
+  slice_max(count, n = 5) %>% 
+  mutate(category = "state") %>% 
+  rename(location = state)
+
+# top_5_states_plot <- ggplot(top_5_states, aes(x = reorder(state, -count), y = count)) +
+#   geom_col() +
+#   labs(x = "state", title = "Top five states where Y Combinator companies are founded")
+
+# combined states and countries data
+combined_location <- top_5_states %>% 
+  add_row(top_5_countries)
+
+combined_location_plot <- ggplot(combined_location, 
+                                 aes(x = reorder(location, -count), y = count)) +
+  geom_col() +
+  facet_grid(~category, scales = "free_x") +
+  labs(title = "Figure 2 - top five countries/states where Y Combinator companies are founded", x = "",
+       y = "number of companies") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = .9 , hjust=1))
+
+################################################################################
+### state heatmap
+
+# rename tibble to match ubrnmapr format
+heatmap_states <- state_breakdown %>% 
+  rename(state_abbv = state) 
+
+# read state geo data
+us_st <- urbnmapr::states 
+
+# join data
+company_st <- left_join(us_st, heatmap_states, by = "state_abbv")
+company_st_plot <-  company_st %>%
+  ggplot(aes(long, lat, group = group, fill = count)) +
+  geom_polygon(color = NA) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  labs(title = "Figure 3 - geographic distribution of Y Combinator companies",
+       x = "", y = "", ) +
+    theme(axis.title.x=element_blank(), 
+          axis.text.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          axis.title.y=element_blank(), 
+          axis.text.y=element_blank(),
+          axis.ticks.y=element_blank())
 
 ################################################################################
 ### import textbook extracts
@@ -106,7 +209,7 @@ textbooks <- textbooks %>%
 
 # ycombinator initial data
 
-yco_init <- ycombinator_data %>% select(directory_name, description) %>%
+yco_init <- ycombinator_data %>% dplyr::select(directory_name, description) %>%
   mutate(description = str_trim(description, side = "both")) %>% 
     rename(document = directory_name, text = description) %>% 
   unnest_tokens(word, text) %>% 
@@ -125,17 +228,11 @@ yco_init_stats <- yco_init %>%
   mutate(data = "companies, pre-processing") %>% 
   relocate(data)
 
-yco_init_hist <- yco_init %>% 
-  ggplot(aes(x = count_words)) +
-  geom_histogram() + 
-  labs(x = "words per company description", y = "frequency",
-       title = "Figure 1 - histogram of words per company description, pre-processing")
-
 # ycombinator post-processing
 
 remove <- "[:digit:]|[:blank:]|[:punct:]"
 
-yco_post <- ycombinator_data %>% select(directory_name, description) %>%
+yco_post <- ycombinator_data %>% dplyr::select(directory_name, description) %>%
   mutate(description = str_trim(description, side = "both")) %>% 
   rename(document = directory_name, text = description) %>% 
   unnest_tokens(word, text) %>% 
@@ -159,15 +256,9 @@ yco_post_stats <- yco_post %>%
   mutate(data = "companies, post-processing") %>% 
   relocate(data)
 
-yco_post_hist <- yco_post %>% 
-  ggplot(aes(x = count_words)) +
-  geom_histogram() + 
-  labs(x = "words per company description", y = "frequency",
-       title = "Figure 2 - histogram of words per company description, post-processing")
-
 # textbook initial data
 
-textbooks_init <- textbooks %>% select(directory_name, description) %>%
+textbooks_init <- textbooks %>% dplyr::select(directory_name, description) %>%
   mutate(description = str_trim(description, side = "both")) %>% 
   rename(document = directory_name, text = description) %>% 
   unnest_tokens(word, text) %>% 
@@ -190,7 +281,7 @@ textbooks_init_stats <- textbooks_init %>%
 
 remove <- "[:digit:]|[:blank:]|[:punct:]"
 
-textbooks_post <- textbooks %>% select(directory_name, description) %>%
+textbooks_post <- textbooks %>% dplyr::select(directory_name, description) %>%
   mutate(description = str_trim(description, side = "both")) %>% 
   rename(document = directory_name, text = description) %>% 
   unnest_tokens(word, text) %>% 
@@ -250,7 +341,7 @@ yco_hist <- yco_init_post %>%
 ### combine company descriptions and textbook extracts, initial processing to 
 ### trim whitespace and NA values
 
-data <- ycombinator_data %>% select(directory_name, description) %>%
+data <- ycombinator_data %>% dplyr::select(directory_name, description) %>%
   mutate(description = str_trim(description, side = "both")) %>% 
   filter(!is.na(description)) %>%
   filter(description != "") %>% 
@@ -266,7 +357,7 @@ data <- ycombinator_data %>% select(directory_name, description) %>%
 remove <- "[:digit:]|[:blank:]|[:punct:]"
 
 data_clean <- data %>% 
-  select(document, text) %>% 
+  dplyr::select(document, text) %>% 
   unnest_tokens(word, text) %>% 
   mutate(word = replace_non_ascii(word)) %>% 
   mutate(word = str_replace_all(word, remove, "")) %>%
@@ -380,7 +471,7 @@ crunchbase_data <- read.csv(here("data", "CB_funding.csv")) %>%
 # filter based on matching name from Y Combinator website, collapse to one row
 # per company
 funding_data <- crunchbase_data %>% 
-  select(directory_name, num_funding_rounds) %>% 
+  dplyr::select(directory_name, num_funding_rounds) %>% 
   filter(directory_name %in% company_url$company_name) %>% 
   group_by(directory_name, num_funding_rounds) %>% 
   summarise(n = n_distinct(directory_name)) %>% 
@@ -390,7 +481,7 @@ funding_data <- crunchbase_data %>%
 ### create dummy variables for exit status from ycombinator data
 
 exit <- ycombinator_data %>% 
-  select(directory_name, status) %>% 
+  dplyr::select(directory_name, status) %>% 
   mutate(acquired = ifelse(status == "Acquired", 1, 0)) %>% 
   mutate(active = ifelse(status == "Active", 1, 0)) %>% 
   mutate(inactive = ifelse(status == "Inactive", 1, 0)) %>% 
@@ -426,39 +517,28 @@ funding_summary <- data_joined %>%
 funding_summary_plot <- ggplot(funding_summary, 
                                aes(x = reorder(status, -count), y = count)) +
   geom_bar(stat = "identity") +
-  labs(x = "funding / status category",
-       title = "Figure 2 - company funding and status statistics")
+  labs(x = "funding / status category", y = "number of companies",
+       title = "Figure 4 - company funding and status statistics")
 
 
 ################################################################################
 ### regression analysis
 
-# multivariable logistic for funded, exits?
+# ordinal logistic regression of company status
 
-# active multivariable logistic regression
-log_active <- glm(formula = active ~ ent_c + fin_c + ldr_c + mkt_c + str_c +
-                    ent_j + fin_j + ldr_j + mkt_j + str_j,
-                  data = data_joined, family = "binomial"(link = "logit"))
+data_polr <- data_joined
+data_polr$status <- factor(data_polr$status, 
+                           levels = c("Inactive", "Active", "Acquired", "Public"), ordered = TRUE)
+
+log_status <- polr(status ~ ent_c + fin_c + ldr_c + mkt_c + str_c + ent_j + fin_j +
+                ldr_j + mkt_j + str_j, data = data_polr, Hess = TRUE)
+
+# multivariable logistic regression for funding
 
 # funded multivariable logistic regression
 log_funded <- glm(formula = funded ~ ent_c + fin_c + ldr_c + mkt_c + str_c +
                     ent_j + fin_j + ldr_j + mkt_j + str_j,
                   data = data_joined, family = "binomial"(link = "logit"))
-
-# inactive multivariable logistic regression
-log_inactive <- glm(formula = inactive ~ ent_c + fin_c + ldr_c + mkt_c + str_c +
-                      ent_j + fin_j + ldr_j + mkt_j + str_j,
-                    data = data_joined, family = "binomial"(link = "logit"))
-
-# acquired multivariable logistic regression
-log_acquired <- glm(formula = acquired ~ ent_c + fin_c + ldr_c + mkt_c + str_c +
-                    ent_j + fin_j + ldr_j + mkt_j + str_j,
-                  data = data_joined, family = "binomial"(link = "logit"))
-
-# public multivariable logistic regression
-log_public <- glm(formula = public ~ ent_c + fin_c + ldr_c + mkt_c + str_c +
-                      ent_j + fin_j + ldr_j + mkt_j + str_j,
-                    data = data_joined, family = "binomial"(link = "logit"))
 
 ```
 
@@ -486,6 +566,14 @@ text text text
 
 ```{r company data, message = F, echo = F}
 yco_hist 
+```
+
+```{r location data, message = F, echo = F}
+combined_location_plot 
+```
+
+```{r state data, message = F, echo = F}
+company_st_plot
 ```
 
 ### Open source textbooks
@@ -528,7 +616,7 @@ text text text
 text text text
 
 
-**Table 3 - Mean cosine and similarity scores by company status**
+**Table 3 - mean cosine and similarity scores by company status**
 ```{r similarity, message = F, echo = F}
 
 combined_cosine <- data_joined %>% 
@@ -559,21 +647,20 @@ combined_jaccard
 
 ### Results
 
-#### Regression analysis tables
+text text text
 
-```{r regression, message = F, echo = F}
-
+**Table 4 - exit status regression table**
+```{r status, message = F, echo = F}
 require(broom)
-r_table_active <- log_active %>% 
-  tidy() %>% 
-  kbl() %>% 
-  kable_classic()
-r_table_active
-tidy(log_funded)
-tidy(log_inactive)
-tidy(log_acquired)
-tidy(log_public )
+r_table_status <- log_status %>% tidy() %>% kbl() %>% kable_classic()
+r_table_status
+```
 
+**Table 5 - funded regression table**
+```{r funded, message = F, echo = F}
+require(broom)
+r_table_funded <- log_funded %>% tidy() %>% kbl() %>% kable_classic()
+r_table_funded
 ```
 
 ## Conclusion

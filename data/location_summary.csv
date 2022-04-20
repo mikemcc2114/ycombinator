@@ -1,0 +1,378 @@
+location,n,city,state,country
+"Aarhus, Denmark",1,Aarhus,Denmark,Denmark
+"Abidjan, Côte D'Ivoire",1,Abidjan,Cote Divoire,Cote Divoire
+"Abu Dhabi, United Arab Emirates",1,Abu Dhabi,United Arab Emirates,United Arab Emirates
+"Abuja, Nigeria",3,Abuja,Nigeria,Nigeria
+"Accra, Ghana",5,Accra,Ghana,Ghana
+"Addis Ababa, Ethiopia",2,Addis Ababa,Ethiopia,Ethiopia
+"Akron, OH",1,Akron,OH,USA
+"Alameda, CA",2,Alameda,CA,USA
+"Albany, NY",1,Albany,NY,USA
+Algeria,1,Algeria,Algeria,Algeria
+"Ames, IA",1,Ames,IA,USA
+"Amsterdam, Netherlands",7,Amsterdam,Netherlands,Netherlands
+"Ann Arbor, MI",6,Ann Arbor,MI,USA
+"Arlington Heights, IL",1,Arlington Heights,IL,USA
+"Asheville, NC",1,Asheville,NC,USA
+"Athens, Greece",2,Athens,Greece,Greece
+"Atherton, CA",2,Atherton,CA,USA
+"Atlanta, GA",25,Atlanta,GA,USA
+"Auckland, New Zealand",1,Auckland,New Zealand,New Zealand
+"Austin, TX",43,Austin,TX,USA
+Austria,1,Austria,Austria,Austria
+"Baltimore, MD",2,Baltimore,MD,USA
+"Bandung, Indonesia",1,Bandung,Indonesia,Indonesia
+"Barcelona, Spain",7,Barcelona,Spain,Spain
+"Barranco, Peru",1,Barranco,Peru,Peru
+"Barranquilla, Colombia",1,Barranquilla,Colombia,Colombia
+"Bath, United Kingdom",1,Bath,United Kingdom,United Kingdom
+"Beijing, China",7,Beijing,China,China
+"Bellevue, WA",2,Bellevue,WA,USA
+"Bengaluru, India",98,Bengaluru,India,India
+"Bentonville, AR",1,Bentonville,AR,USA
+"Berkeley, CA",35,Berkeley,CA,USA
+"Berlin, Germany",14,Berlin,Germany,Germany
+"Bethesda, MD",1,Bethesda,MD,USA
+"Birmingham, AL",2,Birmingham,AL,USA
+"Birmingham, United Kingdom",2,Birmingham,United Kingdom,United Kingdom
+"Bogota, Colombia",20,Bogota,Colombia,Colombia
+"Boise, ID",1,Boise,ID,USA
+Boston,55,Boston,MA,USA
+"Bothell, WA",1,Bothell,WA,USA
+"Boulder, CO",4,Boulder,CO,USA
+Brazil,3,Brazil,Brazil,Brazil
+"Brisbane, Australia",1,Brisbane,Australia,Australia
+"Brisbane, CA",1,Brisbane,CA,USA
+"Broken Arrow, OK",1,Broken Arrow,OK,USA
+"Brussels, Belgium",1,Brussels,Belgium,Belgium
+"Bucharest, Romania",1,Bucharest,Romania,Romania
+"Budapest, Hungary",1,Budapest,Hungary,Hungary
+"Buenos Aires, Argentina",12,Buenos Aires,Argentina,Argentina
+"Burlingame, CA",7,Burlingame,CA,USA
+"Burlington, MA",1,Burlington,MA,USA
+"Burlington, VT",1,Burlington,VT,USA
+CA,13,CA,CA,USA
+"Cairo, Egypt",10,Cairo,Egypt,Egypt
+"Calgary, Canada",2,Calgary,Canada,Canada
+"Cali, Colombia",2,Cali,Colombia,Colombia
+"Cambridge, MA",22,Cambridge,MA,USA
+"Cambridge, United Kingdom",4,Cambridge,United Kingdom,United Kingdom
+"Campbell, CA",1,Campbell,CA,USA
+Canada,3,Canada,Canada,Canada
+"Cancún, Mexico",1,Cancun,Mexico,Mexico
+"Cape Town, South Africa",1,Cape Town,South Africa,South Africa
+"Caracas, Venezuela",1,Caracas,Venezuela,Venezuela
+"Carlsbad, CA",2,Carlsbad,CA,USA
+"Casablanca, Morocco",3,Casablanca,Morocco,Morocco
+"Champaign, IL",1,Champaign,IL,USA
+"Chandigarh, India",1,Chandigarh,India,India
+"Charlotte, NC",2,Charlotte,NC,USA
+"Chattanooga, TN",1,Chattanooga,TN,USA
+"Chennai, India",3,Chennai,India,India
+"Chicago, IL",27,Chicago,IL,USA
+"Cincinnati, OH",1,Cincinnati,OH,USA
+"Cleveland, OH",1,Cleveland,OH,USA
+"Coffeyville, KS",1,Coffeyville,KS,USA
+"Coimbatore, India",1,Coimbatore,India,India
+Colombia,1,Colombia,Colombia,Colombia
+"Columbia, MD",2,Columbia,MD,USA
+"Columbia, MO",1,Columbia,MO,USA
+"Columbus, OH",1,Columbus,OH,USA
+"Copenhagen, Denmark",10,Copenhagen,Denmark,Denmark
+"Córdoba, Argentina",3,Cordoba,Argentina,Argentina
+"A Coruña, Spain",1,Cordoba,Spain,Spain
+"Cork, Ireland",1,Cork,Ireland,Ireland
+"Corvallis, OR",1,Corvallis,OR,USA
+"Culver City, CA",2,Culver City,CA,USA
+"Cupertino, CA",6,Cupertino,CA,USA
+"Cyberjaya, Malaysia",1,Cyberjaya,Malaysia,Malaysia
+"Dakar, Senegal",2,Dakar,Senegal,Senegal
+"Dallas, TX",4,Dallas,TX,USA
+"Dar es Salaam, Tanzania",2,Dar es Salaam,Tanzania,Tanzania
+"Davis, CA",2,Davis,CA,USA
+"Dayton, OH",1,Dayton,OH,USA
+"Delaware City, DE",1,Delaware City,DE,USA
+"Denver, CO",8,Denver,CO,USA
+"Des Moines, IA",1,Des Moines,IA,USA
+"Detroit, MI",3,Detroit,MI,USA
+"Dhaka, Bangladesh",1,Dhaka,Bangladesh,Bangladesh
+"Dubai, United Arab Emirates",7,Dubai,United Arab Emirates,United Arab Emirates
+"Dublin, CA",2,Dublin,CA,USA
+"Dublin, Ireland",3,Dublin,Ireland,Ireland
+"Durango, CO",1,Durango,CO,USA
+"Durham, NC",5,Durham,NC,USA
+"Earth, TX",1,Earth,TX,USA
+"East Palo Alto, CA",1,East Palo Alto,CA,USA
+"Ecublens, Switzerland",1,Ecublens,Switzerland,Switzerland
+"Edinburgh, United Kingdom",1,Edinburgh,United Kingdom,United Kingdom
+"Edmonton, Canada",5,Edmonton,Canada,Canada
+Egypt,1,Egypt,Egypt,Egypt
+"El Cerrito, CA",1,El Cerrito,CA,USA
+"El Dorado Hills, CA",1,El Dorado Hills,CA,USA
+"Emeryville, CA",8,Emeryville,CA,USA
+"Englewood, CO",1,Englewood,CO,USA
+"Erbil, Iraq",1,Erbil,Iraq,Iraq
+"Evanston, IL",1,Evanston,IL,USA
+"Everett, WA",1,Everett,WA,USA
+"Exeter, United Kingdom",1,Exeter,United Kingdom,United Kingdom
+"Fayetteville, AR",1,Fayetteville,AR,USA
+FL,1,FL,FL,USA
+"Fort Collins, CO",1,Fort Collins,CO,USA
+"Fort Worth, TX",1,Fort Worth,TX,USA
+"Foster City, CA",4,Foster City,CA,USA
+"Fredericton, Canada",1,Fredericton,Canada,Canada
+"Fremont, CA",2,Fremont,CA,USA
+"Gainesville, FL",1,Gainesville,FL,USA
+"Galway, Ireland",1,Galway,Ireland,Ireland
+Germany,1,Germany,Germany,Germany
+"Glasgow, United Kingdom",1,Glasgow,United Kingdom,United Kingdom
+"Gold Coast, Australia",1,Gold Coast,Australia,Australia
+"Gothenburg, Sweden",1,Gothenburg,Sweden,Sweden
+"Graz, Austria",1,Graz,Austria,Austria
+"Guadalajara, Mexico",5,Guadalajara,Mexico,Mexico
+"Gurugram, India",21,Gurugram,India,India
+"Hamburg, Germany",1,Hamburg,Germany,Germany
+"Hamlin, NY",1,Hamlin,NY,USA
+"Hanoi, Vietnam",1,Hanoi,Vietnam,Vietnam
+"Hayward, CA",1,Hayward,CA,USA
+"Heidelberg, Germany",1,Heidelberg,Germany,Germany
+"Helsinki, Finland",2,Helsinki,Finland,Finland
+"Ho Chi Minh City, Vietnam",5,Ho Chi Minh City,Vietnam,Vietnam
+"Hoboken, NJ",2,Hoboken,NJ,USA
+Hong Kong,6,Hong Kong,Hong Kong,China
+"Honolulu, HI",3,Honolulu,HI,USA
+"Houston, TX",12,Houston,TX,USA
+"Hughson, CA",1,Hughson,CA,USA
+"Huntington Beach, CA",1,Huntington Beach,CA,USA
+"Huntsville, AL",1,Huntsville,AL,USA
+"Hyderabad, India",12,Hyderabad,India,India
+"Ibadan, Nigeria",2,Ibadan,Nigeria,Nigeria
+"Idaho Falls, ID",1,Idaho Falls,ID,USA
+India,11,India,India,India
+"Indianapolis, IN",1,Indianapolis,IN,USA
+Indonesia,7,Indonesia,Indonesia,Indonesia
+"Inglewood, CA",1,Inglewood,CA,USA
+"Irvine, CA",4,Irvine,CA,USA
+"Islamabad, Pakistan",3,Islamabad,Pakistan,Pakistan
+Israel,1,Israel,Israel,Israel
+"İstanbul, Turkey",2,Istanbul,Turkey,Turkey
+"Jakarta, Indonesia",19,Jakarta,Indonesia,Indonesia
+Japan,1,Japan,Japan,Japan
+"Johannesburg, South Africa",1,Johannesburg,South Africa,South Africa
+"Kailua-Kona, HI",1,Kailua-Kona,HI,USA
+"Kampala, Uganda",1,Kampala,Uganda,Uganda
+"Karachi, Pakistan",4,Karachi,Pakistan,Pakistan
+"Karlsruhe, Germany",1,Karlsruhe,Germany,Germany
+"Kathmandu, Nepal",1,Kathmandu,Nepal,Nepal
+"Khartoum, Sudan",1,Khartoum,Sudan,Sudan
+"Kiel, Germany",1,Kiel,Germany,Germany
+"Kitchener, Canada",17,Kitchener,Canada,Canada
+"Kochi, India",1,Kochi,India,India
+"Kolkata, India",1,Kolkata,India,India
+"Kraków, Poland",3,Kraków,Poland,Poland
+"Kuala Lumpur, Malaysia",5,Kuala Lumpur,Malaysia,Malaysia
+"Kyiv, Ukraine",1,Kyiv,Ukraine,Ukraine
+"LaBelle, FL",1,LaBelle,FL,USA
+"Lagos, Nigeria",43,Lagos,Nigeria,Nigeria
+"Lahore, Pakistan",2,Lahore,Pakistan,Pakistan
+"Las Vegas, NV",4,Las Vegas,NV,USA
+"Lausanne, Switzerland",2,Lausanne,Switzerland,Switzerland
+"Lehi, UT",4,Lehi,UT,USA
+"Les Loges-en-Josas, France",1,Les Loges-en-Josas,France,France
+"Lima, Peru",6,Lima,Peru,Peru
+"Limerick, Ireland",2,Limerick,Ireland,Ireland
+"Little Rock, AR",1,Little Rock,AR,USA
+"Livermore, CA",1,Livermore,CA,USA
+"Ljubljana, Slovenia",3,Ljubljana,Slovenia,Slovenia
+"London, Canada",1,London,Canada,Canada
+"London, United Kingdom",93,London,United Kingdom,United Kingdom
+"Los Altos, CA",3,Los Altos,CA,USA
+"Los Angeles, CA",107,Los Angeles,CA,USA
+"Los Gatos, CA",3,Los Gatos,CA,USA
+"Louisville, KY",1,Louisville,KY,USA
+"Lucerne Valley, CA",1,Lucerne Valley,CA,USA
+"Lusaka, Zambia",1,Lusaka,Zambia,Zambia
+"Maastricht, Netherlands",1,Maastricht,Netherlands,Netherlands
+"Madrid, Spain",3,Madrid,Spain,Spain
+"Mérida, Mexico",1,Madrida,Mexico,Mexico
+"Makati, Philippines",3,Makati,Philippines,Philippines
+"Manila, Philippines",2,Manila,Philippines,Philippines
+"Mannheim, Germany",1,Mannheim,Germany,Germany
+"Maracaibo, Venezuela",1,Maracaibo,Venezuela,Venezuela
+"Marina del Rey, CA",1,Marina del Rey,CA,USA
+"Maringá, Brazil",1,Maringá,Brazil,Brazil
+"Marlboro, VT",1,Marlboro,VT,USA
+"McKinney, TX",1,McKinney,TX,USA
+"McLean, VA",1,McLean,VA,USA
+"Medellín, Colombia",3,Medellin,Colombia,Colombia
+"Melbourne, Australia",1,Melbourne,Australia,Australia
+"Memphis, TN",2,Memphis,TN,USA
+"Menlo Park, CA",15,Menlo Park,CA,USA
+"Mesa, AZ",1,Mesa,AZ,USA
+"Mexico City, Mexico",44,Mexico City,Mexico,Mexico
+"Miami, FL",18,Miami,FL,USA
+"Milan, Italy",1,Milan,Italy,Italy
+"Mill Creek, WA",1,Mill Creek,WA,USA
+"Mill Valley, CA",1,Mill Valley,CA,USA
+"Milpitas, CA",3,Milpitas,CA,USA
+"Minneapolis, MN",3,Minneapolis,MN,USA
+"Minsk, Belarus",1,Minsk,Belarus,Belarus
+"Missoula, MT",1,Missoula,MT,USA
+"Monterrey, Mexico",20,Monterrey,Mexico,Mexico
+"Montreal, Canada",9,Montreal,Canada,Canada
+"Moscow, Russia",1,Moscow,Russia,Russia
+Mountain View,79,Mountain View,CA,USA
+"Mumbai, India",22,Mumbai,India,India
+"Munich, Germany",6,Munich,Germany,Germany
+"Nairobi, Kenya",7,Nairobi,Kenya,Kenya
+"Nantes, France",1,Nantes,France,France
+"Nashville, TN",3,Nashville,TN,USA
+"New Delhi, India",12,New Delhi,India,India
+"New Haven, CT",1,New Haven,CT,USA
+"New Orleans, LA",1,New Orleans,LA,USA
+New York,270,New York,NY,USA
+"Newark, CA",2,Newark,CA,USA
+"Newport Beach, CA",2,Newport Beach,CA,USA
+"Niagara Falls, NY",1,Niagara Falls,NY,USA
+"Nice, France",1,Nice,France,France
+"Nicosia, Cyprus",1,Nicosia,Cyprus,Cyprus
+"Noida, India",2,Noida,India,India
+"Norwalk, CT",1,Norwalk,CT,USA
+"Nottingham, United Kingdom",1,Nottingham,United Kingdom,United Kingdom
+"Novato, CA",1,Novato,CA,USA
+NY,16,NY,NY,USA
+"Oakland, CA",43,Oakland,CA,USA
+"Ogden, UT",1,Ogden,UT,USA
+"Omaha, NE",1,Omaha,NE,USA
+"Oregon City, OR",2,Oregon City,OR,USA
+"Orem, UT",1,Orem,UT,USA
+"Orlando, FL",2,Orlando,FL,USA
+"Oslo, Norway",5,Oslo,Norway,Norway
+"Ottawa, Canada",3,Ottawa,Canada,Canada
+"Ottawa Hills, OH",1,Ottawa Hills,OH,USA
+"Overland, MO",1,Overland,MO,USA
+"Oworonshoki, Nigeria",1,Oworonshoki,Nigeria,Nigeria
+"Oxford, United Kingdom",3,Oxford,United Kingdom,United Kingdom
+"Oyster Bay, NY",1,Oyster Bay,NY,USA
+"Padua, Italy",1,Padua,Italy,Italy
+Palo Alto,93,Palo Alto,CA,USA
+"Panaji, India",1,Panaji,India,India
+"Panama City, Panama",4,Panama City,Panama,Panama
+"Paris, France",38,Paris,France,France
+"Pasadena, CA",1,Pasadena,CA,USA
+"Pereira, Colombia",1,Pereira,Colombia,Colombia
+"Philadelphia, PA",10,Philadelphia,PA,USA
+Philippines,1,Philippines,Philippines,Philippines
+"Phoenix, AZ",1,Phoenix,AZ,USA
+"Pittsburgh, PA",8,Pittsburgh,PA,USA
+"Pleasanton, CA",4,Pleasanton,CA,USA
+"Plymouth, MI",1,Plymouth,MI,USA
+"Portland, OR",9,Portland,OR,USA
+"Prague, Czech Republic",1,Prague,Czech Republic,Czech Republic
+"Princeton, NJ",1,Princeton,NJ,USA
+"Providence, RI",1,Providence,RI,USA
+"Providencia, Chile",1,Providencia,Chile,Chile
+"Provo, UT",2,Provo,UT,USA
+"Pune, India",3,Pune,India,India
+"Quebec City, Canada",1,Quebec City,Canada,Canada
+"Quito, Ecuador",1,Quito,Ecuador,Ecuador
+"Raipur, India",1,Raipur,India,India
+"Raleigh, NC",2,Raleigh,NC,USA
+"Recife, Brazil",1,Recife,Brazil,Brazil
+"Redmond, WA",1,Redmond,WA,USA
+"Redwood City, CA",22,Redwood City,CA,USA
+"Remote, OR",2,Remote,OR,USA
+"Reno, NV",1,Reno,NV,USA
+"Reston, VA",1,Reston,VA,USA
+"Richmond, CA",1,Richmond,CA,USA
+"Richmond, VA",2,Richmond,VA,USA
+"Riga, Latvia",2,Riga,Latvia,Latvia
+"Ringwood, NJ",1,Ringwood,NJ,USA
+"Rio de Janeiro, Brazil",3,Rio de Janeiro,Brazil,Brazil
+"Rochester, MN",1,Rochester,MN,USA
+"Royal Oak, MI",1,Royal Oak,MI,USA
+"São Carlos, Brazil",1,São Carlos,Brazil,Brazil
+"São José dos Campos, Brazil",1,São José dos Campos,Brazil,Brazil
+"São Paulo, Brazil",32,São Paulo,Brazil,Brazil
+"Sacramento, CA",2,Sacramento,CA,USA
+"Salt Lake City, UT",7,Salt Lake City,UT,USA
+"San Antonio, TX",1,San Antonio,TX,USA
+"San Carlos, CA",9,San Carlos,CA,USA
+"San Clemente, CA",2,San Clemente,CA,USA
+"San Diego, CA",12,San Diego,CA,USA
+San Francisco,1120,San Francisco,CA,USA
+"San Jose, CA",33,San Jose,CA,USA
+"San José, Costa Rica",1,San Jose,Costa Rica,Costa Rica
+"San Juan, Puerto Rico",1,San Juan,Puerto Rico,Puerto Rico
+"San Leandro, CA",5,San Leandro,CA,USA
+"San Mateo, CA",35,San Mateo,CA,USA
+"Santa Barbara, CA",1,Santa Barbara,CA,USA
+"Santa Clara, CA",14,Santa Clara,CA,USA
+"Santa Cruz, CA",2,Santa Cruz,CA,USA
+"Santa Fe, NM",1,Santa Fe,NM,USA
+"Santa Monica, CA",14,Santa Monica,CA,USA
+"Santiago, Chile",14,Santiago,Chile,Chile
+"Schiphol, Netherlands",1,Schiphol,Netherlands,Netherlands
+"Seattle, WA",40,Seattle,WA,USA
+"Seoul, South Korea",3,Seoul,South Korea,South Korea
+Seychelles,1,Seychelles,Seychelles,Seychelles
+"Shanghai, China",2,Shanghai,China,China
+"Shenzhen, China",2,Shenzhen,China,China
+Singapore,45,Singapore,Singapore,Singapore
+"Somerville, MA",4,Somerville,MA,USA
+"South Bend, IN",1,South Bend,IN,USA
+South Korea,4,South Korea,South Korea,South Korea
+"South San Francisco, CA",6,South San Francisco,CA,USA
+"Southfield, MI",1,Southfield,MI,USA
+"St. John's, Canada",2,St. John's,Canada,Canada
+"St. Louis, MO",3,St. Louis,MO,USA
+"St. Petersburg, FL",1,St. Petersburg,FL,USA
+"Stamford, CT",1,Stamford,CT,USA
+"Stanford, CA",1,Stanford,CA,USA
+"State College, PA",1,State College,PA,USA
+"Sterling, VA",1,Sterling,VA,USA
+"Stockholm, Sweden",7,Stockholm,Sweden,Sweden
+"Stuttgart, Germany",1,Stuttgart,Germany,Germany
+"Sunnyvale, CA",14,Sunnyvale,CA,USA
+"Sunshine Coast, Australia",1,Sunshine Coast,Australia,Australia
+"Surabaya, Indonesia",1,Surabaya,Indonesia,Indonesia
+"Sydney, Australia",4,Sydney,Australia,Australia
+"Taguig, Philippines",1,Taguig,Philippines,Philippines
+Taiwan,1,Taiwan,Taiwan,Taiwan
+"Tallinn, Estonia",2,Tallinn,Estonia,Estonia
+"Tampa, FL",1,Tampa,FL,USA
+"Tbilisi, Georgia",1,Tbilisi,Georgia,Georgia
+"Tel Aviv-Yafo, Israel",17,Tel Aviv-Yafo,Israel,Israel
+"Tempe, AZ",2,Tempe,AZ,USA
+"The Hague, Netherlands",1,The Hague,Netherlands,Netherlands
+"Toronto, Canada",68,Toronto,Canada,Canada
+"Toulouse, France",1,Toulouse,France,France
+"Traverse City, MI",1,Traverse City,MI,USA
+"Troy, MI",1,Troy,MI,USA
+"Truckee, CA",1,Truckee,CA,USA
+"Uberlândia, Brazil",1,Uberlândia,Brazil,Brazil
+United Kingdom,4,United Kingdom,United Kingdom,United Kingdom
+"Urbana, IL",1,Urbana,IL,USA
+"Vancouver, Canada",8,Vancouver,Canada,Canada
+"Ventura, CA",1,Ventura,CA,USA
+"Victoria, Canada",4,Victoria,Canada,Canada
+"Vienna, Austria",1,Vienna,Austria,Austria
+Vietnam,1,Vietnam,Vietnam,Vietnam
+"Villanova, PA",1,Villanova,PA,USA
+"Vilnius, Lithuania",1,Vilnius,Lithuania,Lithuania
+"Virginia Beach, VA",1,Virginia Beach,VA,USA
+"Wallingford, CT",1,Wallingford,CT,USA
+"Walnut, CA",1,Walnut,CA,USA
+"Walnut Creek, CA",2,Walnut Creek,CA,USA
+"Warsaw, Poland",3,Warsaw,Poland,Poland
+"Washington, DC",11,Washington,DC,USA
+"Waterloo, Canada",10,Waterloo,Canada,Canada
+"Watertown, MA",1,Watertown,MA,USA
+"Williamsburg, VA",1,Williamsburg,VA,USA
+"Wilmington, DE",1,Wilmington,DE,USA
+"Windhoek, Namibia",1,Windhoek,Namibia,Namibia
+"Winnipeg, Canada",1,Winnipeg,Canada,Canada
+"Winston-Salem, NC",1,Winston-Salem,NC,USA
+"Zürich, Switzerland",2,Zürich,Switzerland,Switzerland
+"Zagreb, Croatia",1,Zagreb,Croatia,Croatia
+"Zapopan, Mexico",3,Zapopan,Mexico,Mexico

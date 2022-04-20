@@ -13,7 +13,8 @@ library(lsa)
 library(widyr)
 library(kableExtra)
 library(sjPlot)
-library(bayesbio)
+library(MASS)
+library(effects)
 
 ################################################################################
 ### scrape company descriptions
@@ -42,26 +43,26 @@ ycombinator_data <- tibble(directory_name = character(),
                            website_name = character(), season = character(), 
                            status = character(), headline = character(), 
                            description = character(), url = character())
-
-# for(i in 1:length(company_url$url)){
-#   cat("Iteration", i, "out of", length(company_url$url), "\n")
-#   page <- read_html(company_url$url[i])
-#   directory_name <- company_url$company_name[i]
-#   website_name <- page %>% html_nodes(xpath = path_name) %>% html_text()
-#   season <- page %>% html_nodes(xpath = path_season) %>% html_text()
-#   status <- page %>% html_nodes(xpath = path_status) %>% html_text()
-#   headline <- page %>% html_nodes("h3") %>% html_text() %>% .[1]
-#   description <- page %>% html_nodes("p") %>% html_text() %>% .[1]
-#   ycombinator_data <- ycombinator_data %>%  
-#     add_row(directory_name = directory_name, website_name = website_name, 
-#             season = season, status = status, headline = headline,
-#             description = description, url = company_url$url[i])
+# 
+#  for(i in 1:length(company_url$url)){
+#    cat("Iteration", i, "out of", length(company_url$url), "\n")
+#    page <- read_html(company_url$url[i])
+#    directory_name <- company_url$company_name[i]
+#    website_name <- page %>% html_nodes(xpath = path_name) %>% html_text()
+#    season <- page %>% html_nodes(xpath = path_season) %>% html_text()
+#    status <- page %>% html_nodes(xpath = path_status) %>% html_text()
+#    headline <- page %>% html_nodes("h3") %>% html_text() %>% .[1]
+#    description <- page %>% html_nodes("p") %>% html_text() %>% .[1]
+#    ycombinator_data <- ycombinator_data %>%  
+#      add_row(directory_name = directory_name, website_name = website_name, 
+#              season = season, status = status, headline = headline,
+#              description = description, url = company_url$url[i])
+#    Sys.sleep(.01)
 # }
 
 # write data to csv
-#write_csv(ycombinator_data, file = here("data", "ycombinator_data.csv"))
 
-# read data from csv
+# read previously downloaded data from csv
 ycombinator_data <- read_csv(here("data", "ycombinator_data.csv"))
 
 ################################################################################
@@ -434,6 +435,16 @@ funding_summary_plot <- ggplot(funding_summary,
 
 ################################################################################
 ### regression analysis
+
+# ordinal logistic regression of company status
+
+data_polr <- data_joined
+data_polr$status <- factor(data_polr$status, 
+                           levels = c("Inactive", "Active", "Acquired", "Public"), ordered = TRUE)
+
+log_status <- polr(status ~ ent_c + fin_c + ldr_c + mkt_c + str_c + ent_j + fin_j +
+                ldr_j + mkt_j + str_j, data = data_polr, Hess = TRUE)
+summary(log_status)
 
 # multivariable logistic for funded, exits?
 
