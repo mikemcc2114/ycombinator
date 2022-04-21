@@ -38,310 +38,6 @@ library(MASS)
 ```{r import data, echo = F, warning = F, error = F, message = F, results = 'hide' }
 
 ################################################################################
-### scrape company descriptions
-
-# Y Combinator website sitemap
-sitemap <- "https://www.ycombinator.com/companies//sitemap.xml"
-pattern <- "https://www.ycombinator.com/companies/"
-
-# read sitemap XML and convert into dataframe and vector of company name and urls
-company_url <- sitemap %>% read_xml() %>% as_list() %>% 
-  as_tibble() %>% unnest_longer(urlset) %>% 
-  filter(urlset_id == "loc") %>% 
-  unnest(cols = names(.)) %>% unnest(urlset) %>% rename("url" = "urlset") %>% 
-  mutate(company_name = gsub("https://www.ycombinator.com/companies/", "", url))
-
-# write data to csv
-#write_csv(company_url, file = here("data", "company_url.csv"))
-
-# define paths for company name, season, and status tags
-path_name <- "/html/body/div/div[2]/div/div/div[1]/div[1]/div[2]/div[1]/h1"
-path_season <- "/html/body/div/div[2]/div/div/div[1]/div[1]/div[2]/div[2]/span[1]/text()"
-path_status <- "/html/body/div/div[2]/div/div/div[1]/div[1]/div[2]/div[2]/span[2]"
-
-# scrape company descriptions from Y Combinator website based on url vector
-# ycombinator_data <- tibble(directory_name = character(), 
-#                            website_name = character(), season = character(), 
-#                            status = character(), headline = character(), 
-#                            description = character(), url = character())
-
-# for(i in 1:length(company_url$url)){
-#   cat("Iteration", i, "out of", length(company_url$url), "\n")
-#   page <- read_html(company_url$url[i])
-#   directory_name <- company_url$company_name[i]
-#   website_name <- page %>% html_nodes(xpath = path_name) %>% html_text()
-#   season <- page %>% html_nodes(xpath = path_season) %>% html_text()
-#   status <- page %>% html_nodes(xpath = path_status) %>% html_text()
-#   headline <- page %>% html_nodes("h3") %>% html_text() %>% .[1]
-#   description <- page %>% html_nodes("p") %>% html_text() %>% .[1]
-#   ycombinator_data <- ycombinator_data %>%  
-#     add_row(directory_name = directory_name, website_name = website_name, 
-#             season = season, status = status, headline = headline,
-#             description = description, url = company_url$url[i])
-# }
-
-# write data to csv
-
-# read previously downloaded data from csv
-ycombinator_data <- read_csv(here("data", "ycombinator_data.csv"))
-
-################################################################################
-### company location information
-
-# define path for company location
-path_location <- "/html/body/div/div[1]/div/div/div[2]/div/div[2]/div[3]/span[2]"
-
-# scrape company locations from Y Combinator website based on url vector
-location_data <- tibble(directory_name = character(), location = character())
-
-# for(i in 1:length(company_url$url)){
-#    cat("Iteration", i, "out of", length(company_url$url), "\n")
-#    page <- read_html(company_url$url[i])
-#    directory_name <- company_url$company_name[i]
-#    location <- page %>% html_nodes(xpath = path_location) %>% html_text()
-#    location_data <- location_data %>%
-#      add_row(directory_name = directory_name, location = location)
-# }
-
-# write data to csv
-#write_csv(location_data, file = here("data", "location_data.csv"))
-
-# read data from csv
-location_data <- read_csv(here("data", "location_data.csv"))
-
-# summary table
-location_summary <- location_data %>% 
-  count(location)
-
-# write data to csv, then manually categorize
-#write_csv(location_summary, file = here("data", "location_summary.csv"))
-
-# read manually categorized summary
-location_summary <- read_csv(here("data", "location_summary.csv"))
-
-# break down data by country
-country_breakdown <- location_summary %>%
-  group_by(country) %>% 
-  summarize(count = sum(n))
-
-# top 5 countries
-top_5_countries <- country_breakdown %>%
-  slice_max(count, n = 5) %>% 
-  mutate(category = "country") %>% 
-  rename(location = country)
-
-# top_5_countries_plot <- ggplot(top_5_countries, aes(x = reorder(country, -count), y = count)) +
-#   geom_col() +
-#   labs(x = "country", title = "Top five countries where Y Combinator companies are founded")
-
-# break down data by US states
-state_breakdown <- location_summary %>%
-  filter(country == "USA") %>% 
-  group_by(state) %>% 
-  summarize(count = sum(n))
-
-# top 5 states
-top_5_states <- state_breakdown %>%
-  slice_max(count, n = 5) %>% 
-  mutate(category = "state") %>% 
-  rename(location = state)
-
-# top_5_states_plot <- ggplot(top_5_states, aes(x = reorder(state, -count), y = count)) +
-#   geom_col() +
-#   labs(x = "state", title = "Top five states where Y Combinator companies are founded")
-
-# combined states and countries data
-combined_location <- top_5_states %>% 
-  add_row(top_5_countries)
-
-combined_location_plot <- ggplot(combined_location, 
-                                 aes(x = reorder(location, -count), y = count)) +
-  geom_col() +
-  facet_grid(~category, scales = "free_x") +
-  labs(title = "Figure 2 - top five countries/states where Y Combinator companies are founded", x = "",
-       y = "number of companies") + 
-  theme(axis.text.x = element_text(angle = 45, vjust = .9 , hjust=1))
-
-################################################################################
-### state heatmap
-
-# rename tibble to match ubrnmapr format
-heatmap_states <- state_breakdown %>% 
-  rename(state_abbv = state) 
-
-# read state geo data
-us_st <- urbnmapr::states 
-
-# join data
-company_st <- left_join(us_st, heatmap_states, by = "state_abbv")
-company_st_plot <-  company_st %>%
-  ggplot(aes(long, lat, group = group, fill = count)) +
-  geom_polygon(color = NA) +
-  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
-  labs(title = "Figure 3 - geographic distribution of Y Combinator companies",
-       x = "", y = "", ) +
-    theme(axis.title.x=element_blank(), 
-          axis.text.x=element_blank(),
-          axis.ticks.x=element_blank(),
-          axis.title.y=element_blank(), 
-          axis.text.y=element_blank(),
-          axis.ticks.y=element_blank())
-
-################################################################################
-### import textbook extracts
-
-pdf_list <- list.files(here("data", "textbooks"))
-textbooks <- tibble(textbook = character(), text = character())
-
-for(i in 1:length(pdf_list)){
-  cat("Iteration", i, "out of", length(pdf_list), "\n")
-  textbook <-  pdf_list[i]
-  text <- here("data", "textbooks", pdf_list[i]) %>%
-    pdf_text() %>% str_flatten()
-  textbooks <- textbooks %>% add_row(textbook = textbook,
-                                     text = text)
-}
-
-# remove extraneous title info and rename columns to match company tibble
-textbooks <- textbooks %>% 
-  mutate(textbook = textbook %>% 
-           str_remove_all("extract_|.pdf")) %>% 
-  rename(directory_name = textbook, description = text)
-
-################################################################################
-### descriptive statistics
-
-# ycombinator initial data
-
-yco_init <- ycombinator_data %>% dplyr::select(directory_name, description) %>%
-  mutate(description = str_trim(description, side = "both")) %>% 
-    rename(document = directory_name, text = description) %>% 
-  unnest_tokens(word, text) %>% 
-  group_by(document) %>% 
-  summarize(count_words = n())
-
-yco_init_stats <- yco_init %>% 
-  summarize("document count" = n_distinct(document),
-            minimum = min(count_words),
-            "lower quartile" = quantile(count_words, .25),
-            mean = mean(count_words),
-            median = median(count_words),
-            "upper quartile" = quantile(count_words, .75),
-            maximum = max(count_words),
-            "standard deviation" = sd(count_words)) %>% 
-  mutate(data = "companies, pre-processing") %>% 
-  relocate(data)
-
-# ycombinator post-processing
-
-remove <- "[:digit:]|[:blank:]|[:punct:]"
-
-yco_post <- ycombinator_data %>% dplyr::select(directory_name, description) %>%
-  mutate(description = str_trim(description, side = "both")) %>% 
-  rename(document = directory_name, text = description) %>% 
-  unnest_tokens(word, text) %>% 
-  mutate(word = replace_non_ascii(word)) %>% 
-  mutate(word = str_replace_all(word, remove, "")) %>%
-  filter(word != "") %>% 
-  anti_join(stop_words) %>% 
-  mutate(word = lemmatize_words(word)) %>% 
-  group_by(document) %>% 
-  summarize(count_words = n()) 
-
-yco_post_stats <- yco_post %>% 
-  summarize("document count" = n_distinct(document),
-            minimum = min(count_words),
-            "lower quartile" = quantile(count_words, .25),
-            mean = mean(count_words),
-            median = median(count_words),
-            "upper quartile" = quantile(count_words, .75),
-            maximum = max(count_words),
-            "standard deviation" = sd(count_words)) %>% 
-  mutate(data = "companies, post-processing") %>% 
-  relocate(data)
-
-# textbook initial data
-
-textbooks_init <- textbooks %>% dplyr::select(directory_name, description) %>%
-  mutate(description = str_trim(description, side = "both")) %>% 
-  rename(document = directory_name, text = description) %>% 
-  unnest_tokens(word, text) %>% 
-  group_by(document) %>% 
-  summarize(count_words = n())
-
-textbooks_init_stats <- textbooks_init %>% 
-  summarize("document count" = n_distinct(document),
-            minimum = min(count_words),
-            "lower quartile" = quantile(count_words, .25),
-            mean = mean(count_words),
-            median = median(count_words),
-            "upper quartile" = quantile(count_words, .75),
-            maximum = max(count_words),
-            "standard deviation" = sd(count_words)) %>% 
-  mutate(data = "textbooks, pre-processing") %>% 
-  relocate(data)
-
-# textbooks post-processing
-
-remove <- "[:digit:]|[:blank:]|[:punct:]"
-
-textbooks_post <- textbooks %>% dplyr::select(directory_name, description) %>%
-  mutate(description = str_trim(description, side = "both")) %>% 
-  rename(document = directory_name, text = description) %>% 
-  unnest_tokens(word, text) %>% 
-  mutate(word = replace_non_ascii(word)) %>% 
-  mutate(word = str_replace_all(word, remove, "")) %>%
-  filter(word != "") %>% 
-  anti_join(stop_words) %>% 
-  mutate(word = lemmatize_words(word)) %>% 
-  group_by(document) %>% 
-  summarize(count_words = n()) 
-
-textbooks_post_stats <- textbooks_post %>% 
-  summarize("document count" = n_distinct(document),
-            minimum = min(count_words),
-            "lower quartile" = quantile(count_words, .25),
-            mean = mean(count_words),
-            median = median(count_words),
-            "upper quartile" = quantile(count_words, .75),
-            maximum = max(count_words),
-            "standard deviation" = sd(count_words)) %>% 
-  mutate(data = "textbooks, post-processing") %>% 
-  relocate(data)
-
-# combined summary table
-
-descr_stats <- yco_init_stats %>% 
-  add_row(yco_post_stats) %>% 
-  add_row(textbooks_init_stats) %>% 
-  add_row(textbooks_post_stats) 
-
-descr_stats_table <- kbl(descr_stats) %>% 
-  kable_classic() %>% 
-  add_header_above(c(" " = 1, " " = 1, "words per document" = 7))
-
-# combined histogram
-
-yco_init <- yco_init %>% 
-  mutate(data = "before processing")
-
-yco_post <- yco_post %>% 
-  mutate(data = "after processing")
-
-yco_init_post <- yco_init %>% add_row(yco_post)
-yco_init_post$data <- factor(yco_init_post$data, 
-                             levels = c("before processing",
-                                        "after processing"))
-
-yco_hist <- yco_init_post %>% 
-  ggplot(aes(x = count_words)) +
-  geom_histogram() +
-  facet_grid(~data) + 
-  labs(x = "words per company description", y = "frequency",
-       title = "Figure 1 - histogram of words per company description")
- 
-
-################################################################################
 ### combine company descriptions and textbook extracts, initial processing to 
 ### trim whitespace and NA values
 
@@ -521,8 +217,8 @@ funding_summary <- data_joined %>%
 funding_summary_plot <- ggplot(funding_summary, 
                                aes(x = reorder(status, -count), y = count)) +
   geom_bar(stat = "identity") +
-  labs(x = "status", y = "number of companies",
-       title = "Figure 4 - company status statistics")
+  labs(x = "funding / status category", y = "number of companies",
+       title = "Figure 4 - company funding and status statistics")
 
 
 ################################################################################
@@ -546,7 +242,7 @@ log_funded <- glm(formula = funded ~ ent_c + fin_c + ldr_c + mkt_c + str_c +
 
 ```
 
-## **Introduction**
+## Introduction
 
 text text text
 
@@ -562,27 +258,331 @@ text text text
 
 text text text
 
-## **Data**
+## Data
 
 ### Y Combinator startup company descriptions
 
 text text text
 
-```{r company data, message = F, echo = F}
-yco_hist 
+```{r descriptions, echo = F, warning = F, error = F, message = F, results = 'hide' }
+################################################################################
+### scrape company descriptions
+
+# Y Combinator website sitemap
+sitemap <- "https://www.ycombinator.com/companies//sitemap.xml"
+pattern <- "https://www.ycombinator.com/companies/"
+
+# read sitemap XML and convert into dataframe and vector of company name and urls
+company_url <- sitemap %>% read_xml() %>% as_list() %>% 
+  as_tibble() %>% unnest_longer(urlset) %>% 
+  filter(urlset_id == "loc") %>% 
+  unnest(cols = names(.)) %>% unnest(urlset) %>% rename("url" = "urlset") %>% 
+  mutate(company_name = gsub("https://www.ycombinator.com/companies/", "", url))
+
+# write data to csv
+#write_csv(company_url, file = here("data", "company_url.csv"))
+
+# define paths for company name, season, and status tags
+path_name <- "/html/body/div/div[2]/div/div/div[1]/div[1]/div[2]/div[1]/h1"
+path_season <- "/html/body/div/div[2]/div/div/div[1]/div[1]/div[2]/div[2]/span[1]/text()"
+path_status <- "/html/body/div/div[2]/div/div/div[1]/div[1]/div[2]/div[2]/span[2]"
+
+# scrape company descriptions from Y Combinator website based on url vector
+# ycombinator_data <- tibble(directory_name = character(), 
+#                            website_name = character(), season = character(), 
+#                            status = character(), headline = character(), 
+#                            description = character(), url = character())
+
+# for(i in 1:length(company_url$url)){
+#   cat("Iteration", i, "out of", length(company_url$url), "\n")
+#   page <- read_html(company_url$url[i])
+#   directory_name <- company_url$company_name[i]
+#   website_name <- page %>% html_nodes(xpath = path_name) %>% html_text()
+#   season <- page %>% html_nodes(xpath = path_season) %>% html_text()
+#   status <- page %>% html_nodes(xpath = path_status) %>% html_text()
+#   headline <- page %>% html_nodes("h3") %>% html_text() %>% .[1]
+#   description <- page %>% html_nodes("p") %>% html_text() %>% .[1]
+#   ycombinator_data <- ycombinator_data %>%  
+#     add_row(directory_name = directory_name, website_name = website_name, 
+#             season = season, status = status, headline = headline,
+#             description = description, url = company_url$url[i])
+# }
+
+# write data to csv
+
+# read previously downloaded data from csv
+ycombinator_data <- read_csv(here("data", "ycombinator_data.csv"))
+
+################################################################################
+### scrape company location information
+
+# define path for company location
+path_location <- "/html/body/div/div[1]/div/div/div[2]/div/div[2]/div[3]/span[2]"
+
+# scrape company locations from Y Combinator website based on url vector
+location_data <- tibble(directory_name = character(), location = character())
+
+# for(i in 1:length(company_url$url)){
+#    cat("Iteration", i, "out of", length(company_url$url), "\n")
+#    page <- read_html(company_url$url[i])
+#    directory_name <- company_url$company_name[i]
+#    location <- page %>% html_nodes(xpath = path_location) %>% html_text()
+#    location_data <- location_data %>%
+#      add_row(directory_name = directory_name, location = location)
+# }
+
+# write data to csv
+#write_csv(location_data, file = here("data", "location_data.csv"))
+
+# read data from csv
+location_data <- read_csv(here("data", "location_data.csv"))
+
+# summary table
+location_summary <- location_data %>% 
+  count(location)
+
+# write data to csv, then manually categorize
+#write_csv(location_summary, file = here("data", "location_summary.csv"))
+
+# read manually categorized summary
+location_summary <- read_csv(here("data", "location_summary.csv"))
+
+# break down data by country
+country_breakdown <- location_summary %>%
+  group_by(country) %>% 
+  summarize(count = sum(n))
+
+# top 5 countries
+top_5_countries <- country_breakdown %>%
+  slice_max(count, n = 5) %>% 
+  mutate(category = "country") %>% 
+  rename(location = country)
+
+# top_5_countries_plot <- ggplot(top_5_countries, aes(x = reorder(country, -count), y = count)) +
+#   geom_col() +
+#   labs(x = "country", title = "Top five countries where Y Combinator companies are founded")
+
+# break down data by US states
+state_breakdown <- location_summary %>%
+  filter(country == "USA") %>% 
+  group_by(state) %>% 
+  summarize(count = sum(n))
+
+# top 5 states
+top_5_states <- state_breakdown %>%
+  slice_max(count, n = 5) %>% 
+  mutate(category = "state") %>% 
+  rename(location = state)
+
+# top_5_states_plot <- ggplot(top_5_states, aes(x = reorder(state, -count), y = count)) +
+#   geom_col() +
+#   labs(x = "state", title = "Top five states where Y Combinator companies are founded")
+
+# combined states and countries data
+combined_location <- top_5_states %>% 
+  add_row(top_5_countries)
+
+combined_location_plot <- ggplot(combined_location, 
+                                 aes(x = reorder(location, -count), y = count)) +
+  geom_col() +
+  facet_grid(~category, scales = "free_x") +
+  labs(title = "Figure 2 - top five countries/states where Y Combinator companies are founded", x = "",
+       y = "number of companies") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = .9 , hjust=1))
+
+################################################################################
+### create state heatmap of companies
+
+# rename tibble to match ubrnmapr format
+heatmap_states <- state_breakdown %>% 
+  rename(state_abbv = state) 
+
+# read state geo data
+us_st <- urbnmapr::states 
+
+# join data
+company_st <- left_join(us_st, heatmap_states, by = "state_abbv")
+company_st_plot <-  company_st %>%
+  ggplot(aes(long, lat, group = group, fill = count)) +
+  geom_polygon(color = NA) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  labs(title = "Figure 3 - geographic distribution of Y Combinator companies",
+       x = "", y = "", ) +
+    theme(axis.title.x=element_blank(), 
+          axis.text.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          axis.title.y=element_blank(), 
+          axis.text.y=element_blank(),
+          axis.ticks.y=element_blank())
 ```
 
-```{r location data, message = F, echo = F}
+```{r company plots, message = F, echo = F}
+yco_hist
 combined_location_plot 
-```
-
-```{r state data, message = F, echo = F}
 company_st_plot
 ```
 
-### Open source textbook extracts
+### Open source textbooks
 
 text text text
+
+```{r textbook import, echo = F, warning = F, error = F, message = F, results = 'hide' }
+################################################################################
+### import textbook extracts
+
+pdf_list <- list.files(here("data", "textbooks"))
+textbooks <- tibble(textbook = character(), text = character())
+
+for(i in 1:length(pdf_list)){
+  cat("Iteration", i, "out of", length(pdf_list), "\n")
+  textbook <-  pdf_list[i]
+  text <- here("data", "textbooks", pdf_list[i]) %>%
+    pdf_text() %>% str_flatten()
+  textbooks <- textbooks %>% add_row(textbook = textbook,
+                                     text = text)
+}
+
+# remove extraneous title info and rename columns to match company tibble
+textbooks <- textbooks %>% 
+  mutate(textbook = textbook %>% 
+           str_remove_all("extract_|.pdf")) %>% 
+  rename(directory_name = textbook, description = text)
+```
+
+```{r summary stats, echo = F, warning = F, error = F, message = F, results = 'hide' }
+################################################################################
+### descriptive statistics
+
+# ycombinator initial data
+yco_init <- ycombinator_data %>% dplyr::select(directory_name, description) %>%
+  mutate(description = str_trim(description, side = "both")) %>% 
+    rename(document = directory_name, text = description) %>% 
+  unnest_tokens(word, text) %>% 
+  group_by(document) %>% 
+  summarize(count_words = n())
+
+# compute summary stats
+yco_init_stats <- yco_init %>% 
+  summarize("document count" = n_distinct(document),
+            minimum = min(count_words),
+            "lower quartile" = quantile(count_words, .25),
+            mean = mean(count_words),
+            median = median(count_words),
+            "upper quartile" = quantile(count_words, .75),
+            maximum = max(count_words),
+            "standard deviation" = sd(count_words)) %>% 
+  mutate(data = "companies, pre-processing") %>% 
+  relocate(data)
+
+# ycombinator post-processing
+remove <- "[:digit:]|[:blank:]|[:punct:]"
+
+# process company descriptions
+yco_post <- ycombinator_data %>% dplyr::select(directory_name, description) %>%
+  mutate(description = str_trim(description, side = "both")) %>% 
+  rename(document = directory_name, text = description) %>% 
+  unnest_tokens(word, text) %>% 
+  mutate(word = replace_non_ascii(word)) %>% 
+  mutate(word = str_replace_all(word, remove, "")) %>%
+  filter(word != "") %>% 
+  anti_join(stop_words) %>% 
+  mutate(word = lemmatize_words(word)) %>% 
+  group_by(document) %>% 
+  summarize(count_words = n()) 
+
+# compute summary stats
+yco_post_stats <- yco_post %>% 
+  summarize("document count" = n_distinct(document),
+            minimum = min(count_words),
+            "lower quartile" = quantile(count_words, .25),
+            mean = mean(count_words),
+            median = median(count_words),
+            "upper quartile" = quantile(count_words, .75),
+            maximum = max(count_words),
+            "standard deviation" = sd(count_words)) %>% 
+  mutate(data = "companies, post-processing") %>% 
+  relocate(data)
+
+# textbook initial data
+
+textbooks_init <- textbooks %>% dplyr::select(directory_name, description) %>%
+  mutate(description = str_trim(description, side = "both")) %>% 
+  rename(document = directory_name, text = description) %>% 
+  unnest_tokens(word, text) %>% 
+  group_by(document) %>% 
+  summarize(count_words = n())
+
+textbooks_init_stats <- textbooks_init %>% 
+  summarize("document count" = n_distinct(document),
+            minimum = min(count_words),
+            "lower quartile" = quantile(count_words, .25),
+            mean = mean(count_words),
+            median = median(count_words),
+            "upper quartile" = quantile(count_words, .75),
+            maximum = max(count_words),
+            "standard deviation" = sd(count_words)) %>% 
+  mutate(data = "textbooks, pre-processing") %>% 
+  relocate(data)
+
+# textbooks post-processing
+remove <- "[:digit:]|[:blank:]|[:punct:]"
+
+# process textbooks
+textbooks_post <- textbooks %>% dplyr::select(directory_name, description) %>%
+  mutate(description = str_trim(description, side = "both")) %>% 
+  rename(document = directory_name, text = description) %>% 
+  unnest_tokens(word, text) %>% 
+  mutate(word = replace_non_ascii(word)) %>% 
+  mutate(word = str_replace_all(word, remove, "")) %>%
+  filter(word != "") %>% 
+  anti_join(stop_words) %>% 
+  mutate(word = lemmatize_words(word)) %>% 
+  group_by(document) %>% 
+  summarize(count_words = n()) 
+
+# compute summary stats
+textbooks_post_stats <- textbooks_post %>% 
+  summarize("document count" = n_distinct(document),
+            minimum = min(count_words),
+            "lower quartile" = quantile(count_words, .25),
+            mean = mean(count_words),
+            median = median(count_words),
+            "upper quartile" = quantile(count_words, .75),
+            maximum = max(count_words),
+            "standard deviation" = sd(count_words)) %>% 
+  mutate(data = "textbooks, post-processing") %>% 
+  relocate(data)
+
+# combined summary table
+descr_stats <- yco_init_stats %>% 
+  add_row(yco_post_stats) %>% 
+  add_row(textbooks_init_stats) %>% 
+  add_row(textbooks_post_stats) 
+
+descr_stats_table <- kbl(descr_stats) %>% 
+  kable_classic() %>% 
+  add_header_above(c(" " = 1, " " = 1, "words per document" = 7))
+
+# combined histogram
+yco_init <- yco_init %>% 
+  mutate(data = "before processing")
+
+yco_post <- yco_post %>% 
+  mutate(data = "after processing")
+
+yco_init_post <- yco_init %>% add_row(yco_post)
+yco_init_post$data <- factor(yco_init_post$data, 
+                             levels = c("before processing",
+                                        "after processing"))
+
+yco_hist <- yco_init_post %>% 
+  ggplot(aes(x = count_words)) +
+  geom_histogram() +
+  facet_grid(~data) + 
+  labs(x = "words per company description", y = "frequency",
+       title = "Figure 1 - histogram of words per company description")
+
+```
 
 
 **Table 1 - textual data summary statistics**
@@ -605,9 +605,9 @@ funding_summary_plot
 
 ```
 
-## **Methodology and results**
+## Methodology and results
 
-### **Methodology**
+### Methodology
 
 Once we obtained the required data, our methodology followed three main steps: 
 (1) processing the data into useable form, (2) calculating cosine and Jaccard 
@@ -618,70 +618,12 @@ in detail in the following sections.
 
 #### Data processing
 
-##### Textual data
-
-Our two separate sources of textual data required different means to extract and
-then process into usable formats. We extracted the company descriptions using 
-the rvest package, looping through each company's individual website and scraping 
-the required information. For the five textbooks, we manually extracted just the 
-table of contents, index, or glossary (as available, it varied per textbook) and
-then imported them into R using the pdftools package.
-
-The initial textual data, once imported into R, was still not in a format useful
-for analysis. We followed several steps to convert the data into a usable format:
-
-(1) We removed all numbers, whitespace, punctuation, and any blank or "NA"
-rows to reduce the data to just words. 
-
-(2) Next, we "lemmatized" each word using the textstem::lemmatize_words
-function. This function uses a dictionary based on the Mechura 2016 English 
-lemmatization list. This step reduced the words to common base forms, reducing the 
-complexity of the data and making it easier to analyze.
-
-(3) Finally, we calculated term frequencies for each document, and then used this 
-information to build a document-term matrix of all the company descriptions, 
-textbook extracts, and terms. The matrix contains a set of vectors for each textbook
-extract and company description, with each value corresponding to a specific term
-and the frequency it is found in each document.
-
-##### Funding and exit data
-
-We based the current status of each company based on information scraped from the 
-Y Combinator website - each company is described as either "Inactive" (gone out
-of business), "Active", "Acquired", or "Public". We were fortunate in this project
-in that the Y Combinator and Crunchbase websites use a similar naming convention 
-for companies, making joining the textual data with the funding data an easy step.
-We filtered the Crunchbase funding data down to the company name and the number 
-of funding rounds received and joined this data to the list of companies using 
-the dplyr::left_join function. The Crunchbase data only included companies that 
-have received startup funding, enabling us to define a second logical variable 
-for whether or not a company had received funding.
-
 #### Similarity scores
 
-The final processing step required was to calculate the similarity between each 
-company description and the textbook extracts, i.e. how similar a company's 
-initial descriptive language is to a business topic. We did this using two measures, 
-the cosine and Jaccard similarity scores between each company description and 
-each textbook. 
+text text text
 
-We calculated the cosine similarity score for each company description using the
-lsa::cosine function. This function takes two arguments, the respective vectors 
-for each company description and textbook, and returns a cosine similarity score. 
-In mathematical terms, this score is the dot product of the two vectors divided 
-by the product of their lengths.
 
-The Jaccard similarity score is similar to the cosine similarity score, but only 
-considers unique words per document instead of frequency. To calculate this score,
-we first converted each vector into a logical vector, based on whether or not 
-the term was present in the respective document. The Jaccard similarity score 
-is then calculated as the intersection of the two vectors divided by the union 
-of the two vectors.
-
-The mean cosine and Jaccard similarity scores for each company, grouped by 
-company status, are listed in the below table.
-
-**Table 3 - similarity scores by company status**
+**Table 3 - mean cosine and similarity scores by company status**
 ```{r similarity, message = F, echo = F}
 
 combined_cosine <- data_joined %>% 
@@ -710,72 +652,33 @@ combined_jaccard
 
 #### Data integration and regression analysis
 
-Combining these sources of data gave us a table with X independent variables (the
-cosine and Jaccard similarity scores for each company - how closely a company's 
-description matched a business topic) and two dependent variables. The first 
-dependent variable was logical: whether or not a company received funding. The 
-second dependent variable was ordinal, based on a company's exit status: "Inactive",
-"Active", "Acquired", or "Public", in that order. We ran two regressions using 
-this data to determine if there was a relationship between the textual data and 
-(1) whether a company received funding and (2) its viability as a company as 
-measured by exit status.
-
-### **Results**
+### Results
 
 text text text
-
-The continuous variables like age can be interpreted as : with one unit increase
-in age the log odds of having a positive perception about government’s efforts 
-to reduce poverty increases by 0.011
 
 **Table 4 - exit status regression table**
 ```{r status, message = F, echo = F}
 require(broom)
-# take polr output and calculate log odds and p-value
-
-regr_table_status <- log_status %>% 
-  tidy() %>% 
-  mutate("log odds" = exp(estimate)) %>% 
-  relocate("log odds", .after = estimate) %>% 
-  mutate("p value" = pnorm(abs(statistic), lower.tail = F) * 2) %>%
-  relocate("p value", .after = statistic) %>%
-  rename("t statistic" = statistic) %>% kbl() %>% kable_classic()
-regr_table_status
+r_table_status <- log_status %>% tidy() %>% kbl() %>% kable_classic()
+r_table_status
 ```
 
 **Table 5 - funded regression table**
 ```{r funded, message = F, echo = F}
 require(broom)
-regr_table_funded <- log_funded %>% tidy() %>% kbl() %>% kable_classic()
-regr_table_funded
+r_table_funded <- log_funded %>% tidy() %>% kbl() %>% kable_classic()
+r_table_funded
 ```
 
-## **Conclusion**
+## Conclusion
 
-## **References**
+## References
 
 ### R libraries
-
-We used the below libraries in our analysis and to develop this report:
-
-tidyverse         /      tm            /      MASS
-
-xml2              /      rvest         /      urbnmapr
-
-here              /      dplyr         /      broom
-
-tidytext          /      textstem      /      sjPlot           
-
-pdftools          /      textclean     /      widyr
-
-text2vec          /      lsa           /     kableExtra
 
 ### Data sources
 
 #### Company descriptions
-
-All company descriptions were scraped from their respective page at 
-ycombinator.com/companies
 
 #### Textbooks
 
@@ -789,6 +692,5 @@ Strategy: Strategic Management, VA Tech
 
 #### Funding data
 
-Crunchbase funding data provided by Katie Moon, Professor of Finance at 
-University of Colorado Boulder.
+Crunchbase funding data provided by Professor Katie Moon
 

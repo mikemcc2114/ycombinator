@@ -1,12 +1,12 @@
 library(tidyverse)
-library(tm)
+library(here)
 library(xml2)
 library(rvest)
-library(here)
-library(dplyr)
-library(tidytext)
-library(textstem)
 library(pdftools)
+library(tidytext)
+library(tm)
+library(dplyr)
+library(textstem)
 library(textclean)
 library(text2vec)
 library(lsa)
@@ -90,7 +90,7 @@ textbooks <- textbooks %>%
 
 # ycombinator initial data
 
-yco_init <- ycombinator_data %>% select(directory_name, description) %>%
+yco_init <- ycombinator_data %>% dplyr::select(directory_name, description) %>%
   mutate(description = str_trim(description, side = "both")) %>% 
     rename(document = directory_name, text = description) %>% 
   unnest_tokens(word, text) %>% 
@@ -117,7 +117,7 @@ yco_init_hist <- yco_init %>%
 
 remove <- "[:digit:]|[:blank:]|[:punct:]"
 
-yco_post <- ycombinator_data %>% select(directory_name, description) %>%
+yco_post <- ycombinator_data %>% dplyr::select(directory_name, description) %>%
   mutate(description = str_trim(description, side = "both")) %>% 
   rename(document = directory_name, text = description) %>% 
   unnest_tokens(word, text) %>% 
@@ -147,7 +147,7 @@ yco_post_hist <- yco_post %>%
 
 # textbook initial data
 
-textbooks_init <- textbooks %>% select(directory_name, description) %>%
+textbooks_init <- textbooks %>% dplyr::select(directory_name, description) %>%
   mutate(description = str_trim(description, side = "both")) %>% 
   rename(document = directory_name, text = description) %>% 
   unnest_tokens(word, text) %>% 
@@ -170,7 +170,7 @@ textbooks_init_stats <- textbooks_init %>%
 
 remove <- "[:digit:]|[:blank:]|[:punct:]"
 
-textbooks_post <- textbooks %>% select(directory_name, description) %>%
+textbooks_post <- textbooks %>% dplyr::select(directory_name, description) %>%
   mutate(description = str_trim(description, side = "both")) %>% 
   rename(document = directory_name, text = description) %>% 
   unnest_tokens(word, text) %>% 
@@ -228,7 +228,7 @@ yco_hist
 ### combine company descriptions and textbook extracts, initial processing to 
 ### trim whitespace and NA values
 
-data <- ycombinator_data %>% select(directory_name, description) %>%
+data <- ycombinator_data %>% dplyr::select(directory_name, description) %>%
   mutate(description = str_trim(description, side = "both")) %>% 
   filter(!is.na(description)) %>%
   filter(description != "") %>% 
@@ -244,7 +244,7 @@ data <- ycombinator_data %>% select(directory_name, description) %>%
 remove <- "[:digit:]|[:blank:]|[:punct:]"
 
 data_clean <- data %>% 
-  select(document, text) %>% 
+  dplyr::select(document, text) %>% 
   unnest_tokens(word, text) %>% 
   mutate(word = replace_non_ascii(word)) %>% 
   mutate(word = str_replace_all(word, remove, "")) %>%
@@ -358,7 +358,7 @@ crunchbase_data <- read.csv(here("data", "CB_funding.csv")) %>%
 # filter based on matching name from Y Combinator website, collapse to one row
 # per company
 funding_data <- crunchbase_data %>% 
-  select(directory_name, num_funding_rounds) %>% 
+  dplyr::select(directory_name, num_funding_rounds) %>% 
   filter(directory_name %in% company_url$company_name) %>% 
   group_by(directory_name, num_funding_rounds) %>% 
   summarise(n = n_distinct(directory_name)) %>% 
@@ -368,7 +368,7 @@ funding_data <- crunchbase_data %>%
 ### create dummy variables for exit status from ycombinator data
 
 exit <- ycombinator_data %>% 
-  select(directory_name, status) %>% 
+  dplyr::select(directory_name, status) %>% 
   mutate(acquired = ifelse(status == "Acquired", 1, 0)) %>% 
   mutate(active = ifelse(status == "Active", 1, 0)) %>% 
   mutate(inactive = ifelse(status == "Inactive", 1, 0)) %>% 
@@ -412,6 +412,21 @@ combined_jaccard <- data_joined %>%
   kable_classic() %>% 
   add_header_above(c(" " = 1, " " = 1, "Mean Jaccard similarity scores" = 5))
 
+################################################################################
+### variable scatterplot
+
+scatter_data <- data_joined %>% 
+  dplyr::select(funded, ent_c, fin_c, ldr_c, mkt_c, str_c, ent_j, 
+         fin_j, ldr_j, mkt_j, str_j) %>% 
+  mutate(ent_j = ent_j[,1], fin_j = fin_j[,1], ldr_j = ldr_j[,1],
+                  mkt_j = mkt_j[,1], str_j = str_j[,1]) %>% 
+  pivot_longer(!funded, names_to = "type", 
+               values_to = "score")
+
+scatterplot <- ggplot(scatter_data, aes(x = score, y = funded)) +
+  geom_point(size=2, shape=23) +
+  facet_grid(cols = vars(type))
+scatterplot
 
 ################################################################################
 ### funding data statistics
@@ -451,6 +466,26 @@ log_funded <- glm(formula = funded ~ ent_c + fin_c + ldr_c + mkt_c + str_c +
                     ent_j + fin_j + ldr_j + mkt_j + str_j,
                   data = data_joined, family = "binomial"(link = "logit"))
 
+# regression output tables
+options(scipen = 0)
 
+
+summary(log_status)
+summary(log_funded)
+
+require(broom)
+r_table_status <- log_status %>% tidy() # %>% kbl() %>% kable_classic()
+
+
+r_table_status <- r_table_status %>% 
+  mutate("log odds" = exp(estimate)) %>% 
+  relocate("log odds", .after = estimate) %>% 
+  mutate("p value" = pnorm(abs(statistic), lower.tail = F) * 2) %>%
+    relocate("p value", .after = statistic) %>%
+  rename("t statistic" = statistic) %>% kbl() %>% kable_classic()
+r_table_status
+
+r_table_funded <- log_funded %>% tidy() #%>% kbl() %>% kable_classic()
+r_table_funded
 
 
