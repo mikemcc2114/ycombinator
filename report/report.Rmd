@@ -1,15 +1,16 @@
 ---
-title: 'Words have meaning: initial descriptive language choice and startup success'
+title: 'Words have meaning: language choice and startup success'
 author: "Zachary Hayes, Justin Liu, Mike McCormick"
 date: '2022-04-18'
+header-includes:
+    - \usepackage{setspace}\doublespacing
 output:
-  html_document: default
-  word_document: default
-  pdf_document: default
+  pdf_document:
+    extra_dependencies: float
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, fig.pos = "!H", out.extra = "", fig.width=6, fig.height=3)
 ```
 
 ```{r libraries, echo = F, warning = F, error = F, message = F, results = 'hide' }
@@ -158,7 +159,7 @@ combined_location_plot <- ggplot(combined_location,
                                  aes(x = reorder(location, -count), y = count)) +
   geom_col() +
   facet_grid(~category, scales = "free_x") +
-  labs(title = "Figure 2 - top five countries/states where Y Combinator companies are founded", x = "",
+  labs(title = "Figure 2 - top five locations where companies are founded", x = "",
        y = "number of companies") + 
   theme(axis.text.x = element_text(angle = 45, vjust = .9 , hjust=1))
 
@@ -318,6 +319,8 @@ descr_stats <- yco_init_stats %>%
 
 descr_stats_table <- kbl(descr_stats) %>% 
   kable_classic() %>% 
+  kable_styling(latex_options = "hold_position") %>% 
+  kable_styling(latex_options = "scale_down") %>% 
   add_header_above(c(" " = 1, " " = 1, "words per document" = 7))
 
 # combined histogram
@@ -572,9 +575,13 @@ text text text
 yco_hist 
 ```
 
+text text text
+
 ```{r location data, message = F, echo = F}
 combined_location_plot 
 ```
+
+text text text
 
 ```{r state data, message = F, echo = F}
 company_st_plot
@@ -598,16 +605,15 @@ text text text
 ```{r funding, message = F, echo = F}
 
 funding_stats_table <- kbl(funding_summary) %>% 
-  kable_classic()
+  kable_classic() %>% 
+  kable_styling(latex_options = "hold_position", position = "left") 
 funding_stats_table
 
 funding_summary_plot
 
 ```
 
-## **Methodology and results**
-
-### **Methodology**
+## **Methodology**
 
 Once we obtained the required data, our methodology followed three main steps: 
 (1) processing the data into useable form, (2) calculating cosine and Jaccard 
@@ -616,9 +622,7 @@ use ordered and multivariate regressions to analyse the relationship between
 the calculated similarity scores and company outcomes. These steps are discussed
 in detail in the following sections.
 
-#### Data processing
-
-##### Textual data
+#### Textual data
 
 Our two separate sources of textual data required different means to extract and
 then process into usable formats. We extracted the company descriptions using 
@@ -644,7 +648,7 @@ textbook extracts, and terms. The matrix contains a set of vectors for each text
 extract and company description, with each value corresponding to a specific term
 and the frequency it is found in each document.
 
-##### Funding and exit data
+#### Funding and exit data
 
 We based the current status of each company based on information scraped from the 
 Y Combinator website - each company is described as either "Inactive" (gone out
@@ -692,6 +696,7 @@ combined_cosine <- data_joined %>%
             strategy = mean(str_c)) %>% 
   kbl() %>% 
   kable_classic() %>% 
+  kable_styling(latex_options = "hold_position") %>% 
   add_header_above(c(" " = 1, " " = 1, "Mean cosine similarity scores" = 5))
 combined_cosine
 
@@ -703,6 +708,7 @@ combined_jaccard <- data_joined %>%
             strategy = mean(str_j)) %>% 
   kbl() %>% 
   kable_classic() %>% 
+  kable_styling(latex_options = "hold_position") %>% 
   add_header_above(c(" " = 1, " " = 1, "Mean Jaccard similarity scores" = 5))
 combined_jaccard
 
@@ -720,37 +726,67 @@ this data to determine if there was a relationship between the textual data and
 (1) whether a company received funding and (2) its viability as a company as 
 measured by exit status.
 
-### **Results**
+## **Results**
 
-text text text
+It is difficult to draw robust conclusions from our two regressions. The results of 
+each regression are listed in the below tables, with p-value .05 statistically significant 
+independent variables in bold. 
 
-The continuous variables like age can be interpreted as : with one unit increase
-in age the log odds of having a positive perception about government’s efforts 
-to reduce poverty increases by 0.011
+For the first regression, similarity scores versus a company's exit status, the estimates
+of the coefficient for each variable in the regression formula varied widely in both 
+sign and value. Only one variable, the marketing cosine similarity score, was 
+statistically significant at a p-value of .05. We could interpret this as with an 
+one unit increase in the marketing cosine similarity score, the log odds of a company
+progressing through each status increases by 0.30. However, due to the wide variety
+in the rest of the results it is impossible to draw a solid conclusion from this.
 
 **Table 4 - exit status regression table**
 ```{r status, message = F, echo = F}
 require(broom)
 # take polr output and calculate log odds and p-value
-
 regr_table_status <- log_status %>% 
   tidy() %>% 
   mutate("log odds" = exp(estimate)) %>% 
   relocate("log odds", .after = estimate) %>% 
   mutate("p value" = pnorm(abs(statistic), lower.tail = F) * 2) %>%
   relocate("p value", .after = statistic) %>%
-  rename("t statistic" = statistic) %>% kbl() %>% kable_classic()
+  rename("t statistic" = statistic) %>%
+  kbl() %>% 
+  kable_classic() %>% 
+  kable_styling("striped", latex_options = "hold_position") %>% 
+  row_spec(3, bold = T)
 regr_table_status
 ```
+
+For the second regression, similarity scores versus whether or not a company received
+startup funding, the results were marginally more clear. Four variables, the 
+entrepreneurship, finance, and marketing cosine similarity scores and the entrepreneurship
+Jaccard similarity score had statistically significant estimates of their coefficient.
+This could be interpreted as a one unit increase in these similarity scores corresponding
+to a respective increase or decrease in the log odds of a company receiving funding. 
+Again however, the wide variance in results makes it difficult to draw solid conclusions.
+If there were truly a strong relationship, one would expect to see similar results 
+for each cosine or Jaccard similarity score. Instead, they again vary greatly in
+both sign and value, leading to inconclusive results.
 
 **Table 5 - funded regression table**
 ```{r funded, message = F, echo = F}
 require(broom)
-regr_table_funded <- log_funded %>% tidy() %>% kbl() %>% kable_classic()
+regr_table_funded <- log_funded %>% 
+  tidy() %>% 
+  kbl() %>% 
+  kable_classic() %>% 
+  kable_styling("striped", latex_options = "hold_position", position = "left") %>% 
+  row_spec(1:3, bold = T) %>% 
+  row_spec(5, bold = T) %>% 
+  row_spec(7, bold = T)
 regr_table_funded
 ```
 
 ## **Conclusion**
+
+text text text
+text text tex
 
 ## **References**
 
@@ -758,36 +794,31 @@ regr_table_funded
 
 We used the below libraries in our analysis and to develop this report:
 
-tidyverse         /      tm            /      MASS
+tidyverse / tm / MASS / xml2 / rvest / urbnmapr / here / dplyr / broom / kableExtra
 
-xml2              /      rvest         /      urbnmapr
+tidytext / textstem / sjPlot / pdftools / textclean / widyr / text2vec / lsa                    
 
-here              /      dplyr         /      broom
+### Company descriptions
 
-tidytext          /      textstem      /      sjPlot           
-
-pdftools          /      textclean     /      widyr
-
-text2vec          /      lsa           /     kableExtra
-
-### Data sources
-
-#### Company descriptions
-
-All company descriptions were scraped from their respective page at 
+All company descriptions were scraped from their respective pages at 
 ycombinator.com/companies
 
-#### Textbooks
+### Textbook extracts
 
-fix these:
+We extracted the table of contents, indices, and glossaries (availability varied
+by textbook) from the below open source textbooks to build our dictionaries:
 
-Entrepeneurship: openstax, Entrepeneurship
-Finance: Robert C. Higgins, Analysis for Financial Management, 10th Edition
-Leadership: Richard L. Daft, The Leadership Experience
-Marketing: Introducing Marketing, Open Textbook Library
-Strategy: Strategic Management, VA Tech
+--Burnett, J. (n.d.). Introducing marketing. Open Textbook Library. Retrieved April 21, 2022, from https://open.umn.edu/opentextbooks/textbooks/introducing-marketing 
 
-#### Funding data
+--Coleman, W., &amp; Halbardier, A. (n.d.). Principles of Management. openstax.org. Retrieved April 21, 2022, from https://openstax.org/details/books/principles-management 
+
+--Laverty, M., &amp; Littel, C. (n.d.). Entrepeneurship. OpenStax. Retrieved April 21, 2022, from https://openstax.org/details/books/entrepreneurship 
+
+--Reed, K. B. (n.d.). Strategic management. Open Textbook Library. Retrieved April 21, 2022, from https://open.umn.edu/opentextbooks/textbooks/mastering-strategic-management 
+
+--Taylor, J., Robison, L., Hanson, S., &amp; Black, J. R. (2021, January 28). Financial Management for small businesses, 2nd Oer edition. Financial Management for Small Businesses 2nd OER Edition. Retrieved April 21, 2022, from https://openbooks.lib.msu.edu/financialmanagement/ 
+
+### Funding data
 
 Crunchbase funding data provided by Katie Moon, Professor of Finance at 
 University of Colorado Boulder.
