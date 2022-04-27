@@ -470,19 +470,21 @@ data_polr$status <- factor(data_polr$status,
 table_status <- tibble(variable = character(), coefficient = numeric(), t_stat = numeric(),
                   p_value = numeric())
 
-ind_var <- c(variable = variable, coefficient = coefficient, t_stat = t_stat,
-             p_value = p_value)
+ind_var <- c('ent_c', 'fin_c', 'ldr_c', 'mkt_c', 'str_c', 
+             'ent_j', 'fin_j', 'ldr_j', 'mkt_j', 'str_j')
+
+rename columns!!!? do single logistc, olr instead of multiple log?
 
 for(i in ind_var){
   variable = ind_var[i]
-  model <- polr(paste0("status ~ ", ind_var[i]), data = data_polr, Hess = TRUE) %>% 
+  model <- polr(status ~ ind_var[i], data = data_polr, Hess = TRUE) %>% 
     tidy()
   model_tidy <- model %>% filter(term == ind_var[i])
   coefficient <- model_tidy$estimate
   t_stat <- model_tidy$statistic
   p_value <- pnorm(abs(t_stat), lower.tail = F) * 2
   
-  table_Status <- table_status %>%  
+  table_status <- table_status %>%  
     add_row(variable = variable, coefficient = coefficient, t_stat = t_stat,
             p_value = p_value)
 }
